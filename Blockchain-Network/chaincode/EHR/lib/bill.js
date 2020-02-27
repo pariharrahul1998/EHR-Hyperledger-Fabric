@@ -1,0 +1,28 @@
+'use strict';
+
+class Bill {
+
+    /**
+     *
+     * @param hospitalId
+     * @param patientId
+     * @param doctorId
+     * @param laboratoryId
+     * @param pharmacyId
+     * @param time
+     * @returns {Bill}
+     */
+    constructor(hospitalId, patientId, doctorId, laboratoryId, pharmacyId, time) {
+        this.hospitalId = hospitalId;
+        this.patientId = patientId;
+        this.doctorId = doctorId;
+        this.laboratoryId = laboratoryId;
+        this.time = time;
+        this.pharmacyId = pharmacyId;
+        this.type = 'Bill';
+        this.billId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        return this;
+    }
+}
+
+module.exports = Bill;

@@ -2,6 +2,15 @@
 
 class Hospital {
 
+    /**
+     *
+     * @param name
+     * @param registrationId
+     * @param userName
+     * @param password
+     * @param address
+     * @returns {Hospital}
+     */
     constructor(name, registrationId, userName, password, address) {
 
         if (this.validateRegistrationId(registrationId)) {

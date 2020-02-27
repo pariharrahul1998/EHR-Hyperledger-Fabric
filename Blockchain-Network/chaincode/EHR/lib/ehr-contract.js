@@ -14,6 +14,10 @@ let Patient = require('./patient.js');
 let Hospital = require('./hospital.js');
 let Appointment = require('./appointment.js');
 let EHR = require('./ehr.js');
+let Insurance = require('./insurance.js');
+let Laboratory = require('./laboratory.js');
+let Researcher = require('./researcher.js');
+let Bill = require('./bill.js');
 
 /**
  * @author : Rahul Parihar
@@ -22,6 +26,11 @@ let EHR = require('./ehr.js');
 
 class EhrContract extends Contract {
 
+    /**
+     *
+     * @param ctx
+     * @returns {Promise<void>}
+     */
     async initLedger(ctx) {
         console.log('============= START : Initialize Ledger ===========');
 
@@ -109,25 +118,150 @@ class EhrContract extends Contract {
         console.log('============= END : Initialize Ledger ===========');
     }
 
-    /**
-     *
-     * @param ctx
-     * @param ehrId
-     * @returns {Promise<boolean|boolean>}
-     */
     async ehrExists(ctx, ehrId) {
         const buffer = await ctx.stub.getState(ehrId);
         return (!!buffer && buffer.length > 0);
     }
 
-    async createEhr(ctx, ehrId, value) {
-        const exists = await this.ehrExists(ctx, ehrId);
-        if (exists) {
-            throw new Error(`The ehr ${ehrId} already exists`);
+    /**
+     *
+     * @param ctx
+     * @param args - hospital id , appointment id , doctor id , patient id
+     * @param record - will be in the form of hash of the the original record either in the form of pdf of any digital copy
+     * @returns {Promise<string>}
+     */
+    async createEhr(ctx, args, record) {
+        args = JSON.parse(args);
+        let hospitalExists = await this.assestExists(ctx, args.hospitalId);
+        let patientExists = await this.assestExists(ctx, args.patientId);
+        let doctorExists = await this.assestExists(ctx, args.doctorId);
+        let appointmentExists = await this.assestExists(ctx, args.appointmentId);
+
+        if (hospitalExists && doctorExists && patientExists && appointmentExists) {
+
+            //create a new EHR and update it in the world state
+            let newEHR = await new EHR(args.patientId, args.doctorId, args.hospitalId, record, args.time);
+            await ctx.stub.putState(newEHR.ehrId, Buffer.from(JSON.stringify(newEHR)));
+
+            //update the EHR in the list of the ehrs for the patient
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let ehrs = patient.ehrs;
+            ehrs.push(newEHR.ehrId);
+            patient.ehrs = ehrs;
+            await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+
+            let response = `an EHR is created with id${newEHR.ehrId} and stored in the world state`;
+            return response;
+
+        } else {
+            throw new Error(`Either the hospital, patient, doctor or the appointment id is wrong`);
         }
-        const asset = {value};
-        const buffer = Buffer.from(JSON.stringify(asset));
-        await ctx.stub.putState(ehrId, buffer);
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async requestAccess(ctx, args) {
+        args = JSON.parse(args);
+        let requesterExists = await this.assestExists(ctx, args.requesterId);
+        let patientExists = await this.assestExists(ctx, args.patientId);
+        if (requesterExists && patientExists) {
+
+            //get the patient and update the request for that patient
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let requesters = patient.requesters;
+            requesters.push(args.requesterId);
+
+            ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+
+            let response = `the request to access the documents has been submitted with the patient`;
+            return response;
+        } else {
+            throw new Error(`this requester with id ${args.requesterId} or the patient with id ${args.patientId} doesn't exist`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async grantAccess(ctx, args) {
+        args = JSON.parse(args);
+        let patientExists = await this.assestExists(ctx, args.patientId);
+        if (patientExists) {
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let permissionedIds = patient.permissionedIds;
+            let requesters = patient.requesters;
+            let index = requesters.indexOf(args.requesterId);
+            if (index > -1) {
+                requesters.splice(index, 1);
+                patient.requesters = requesters;
+                permissionedIds[args.requesterId] = args.documentIds;
+                patient.permissionedIds = permissionedIds;
+                await ctx.stub.putstate(patient.userName, Buffer.from(JSON.stringify(patient)));
+
+                //update the patient in the patient array for the requester
+                let requesterAsBytes = await ctx.stub.getState(args.requesterId);
+                let requester = JSON.parse(requesterAsBytes);
+                let patients = requester.patients;
+                patients.push(args.patientId);
+                await ctx.stub.putState(args.requesterId, Buffer.from(JSON.stringify(requester)));
+
+                let response = `Access has been provided to the requester with the id ${args.requesterId}`;
+                return response;
+            } else {
+                throw new Error(`No such requester with id ${args.requesterId}`);
+            }
+        } else {
+            throw new Error(`patient with id ${args.patientId} doesn't exists`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async revokeAccess(ctx, args) {
+        args = JSON.parse(args);
+        let patientExists = await this.assestExists(ctx, args.patientId);
+        if (patientExists) {
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let permissionedIds = patient.permissionedIds;
+            if (permissionedIds.has(args.permissionedId)) {
+                permissionedIds.delete(args.permissionedId);
+                patient.permissionedIds = permissionedIds;
+                await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+
+                //update the patient in the patient array for the requester
+                let requesterAsBytes = await ctx.stub.getState(args.permissionedId);
+                let requester = JSON.parse(requesterAsBytes);
+                let patients = requester.patients;
+                let index = patients.indexOf(args.patientId);
+                if (index > -1) {
+                    patients.splice(index, 1);
+                    requester.patients = patients;
+                    await ctx.stub.putState(args.permissionedId, Buffer.from(JSON.stringify(requester)));
+                }
+
+                let response = `Access has been revoked for the requester with the id ${args.permissionedId}`;
+                return response;
+            } else {
+                throw new Error(`No such Permissioned id with id ${args.requesterId}`);
+            }
+        } else {
+            throw new Error(`patient with id ${args.patientId} doesn't exists`);
+        }
     }
 
     async readEhr(ctx, ehrId) {
@@ -192,6 +326,119 @@ class EhrContract extends Contract {
      * @param args
      * @returns {Promise<string>}
      */
+    async generateBill(ctx, args) {
+        args = JSON.parse(args);
+        let hospitalExists = await this.assestExists(args.hospitalId);
+        let patientExists = await this.assestExists(args, patientId);
+        let doctorExists = await this.assestExists(args.doctorId);
+        let laboratoryExists = await this.assestExists(args.laboratoryId);
+        let pharmacyExists = await this.assestExists(args.pharmacyId);
+
+        if (hospitalExists && patientExists && doctorExists && laboratoryExists && pharmacyExists) {
+
+            let newBill = await new Bill(args.hospitalId, args.patientId, args.doctorId, args.laboratoryId, args.pharmacyId, args.time);
+            await ctx.stub.putState(newBill.billId, Buffer.from(JSON.stringify(newBill)));
+
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let bills = patient.bills;
+            bills.push(newBill.billId);
+            patient.bills = bills;
+            await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+            let response = `Bill has been generated with id ${newBill.billId}`;
+            return response;
+
+        } else {
+            throw new Error(`Either the patient or hospital entity is not correct`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async createInsurance(ctx, args) {
+        args = JSON.parse(args);
+        let patients = [];
+
+        //create a new insurer and update that in the world state
+        let newInsurer = await new Insurance(args.name, args.userName, args.password, args.address, args.registrationId);
+        newInsurer.patients = patients;
+
+        await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
+
+        let response = `a new insurer created with id ${newInsurer.registrationId} `;
+        return response;
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async createLaboratory(ctx, args) {
+        args = JSON.parse(args);
+        let hospitalExists = await this.assestExists(args.hospitalId);
+        if (hospitalExists) {
+            let patients = [];
+            let newLaboratory = await new Laboratory(args.userName, args.password, args.hospitalId, args.registrationId);
+            newLaboratory.patients = patients;
+
+            await ctx.stub.putState(newLaboratory.registrationId, Buffer.from(JSON.stringify(newLaboratory)));
+
+            let response = `the laboratory with id ${newLaboratory.registrationId} has been updated in the world state`;
+            return response;
+        } else {
+            throw new Error(`No such hospital exists`);
+        }
+    }
+
+    async createResearcher(ctx, args) {
+        args = JSON.parse(args);
+        let patients = [];
+
+        //create a new Researcher and update that in the world state
+        let newResearcher = await new Researcher(args.name, args.userName, args.password, args.address, args.registrationId);
+        newResearcher.patients = patients;
+
+        await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
+
+        let response = `a new researcher created with id ${newResearcher.userName} `;
+        return response;
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async createPharmacy(ctx, args) {
+        args = JSON.parse(args);
+        let hospitalExists = await this.assestExists(args.hospitalId);
+        if (hospitalExists) {
+            let patients = [];
+            let newPharmacy = await new Pharmacy(args.userName, args.password, args.hospitalId, args.registrationId);
+            newPharmacy.patients = patients;
+
+            await ctx.stub.putState(newPharmacy.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
+
+            let response = `the pharmacy with id ${newLaboratory.registrationId} has been updated in the world state`;
+            return response;
+        } else {
+            throw new Error(`No such hospital exists`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
     async createDoctor(ctx, args) {
         args = JSON.parse(args);
         let hospitalExists = await this.assestExists(ctx, args.hospitalId);
@@ -231,13 +478,18 @@ class EhrContract extends Contract {
      */
     async createPatient(ctx, args) {
         args = JSON.parse(args);
-        let permissionedIds = [];
+        let permissionedIds = {};
         let emergencyContact = [];
+        let ehrs = [];
+        let requesters = [];
+        let bills = [];
 
         let newPatient = await new Patient(args.firstName, args.lastName, args.address, args.aadhaar, args.DOB, args.gender, args.bloodGroup, args.userName, args.password);
 
         newPatient.permissionedIds = permissionedIds;
         newPatient.emergencyContact = emergencyContact;
+        newPatient.ehrs = ehrs;
+        newPatient.requesters = requesters;
 
         await ctx.stub.putState(newPatient.userName, Buffer.from(JSON.stringify(newPatient)));
 
