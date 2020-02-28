@@ -1,7 +1,7 @@
 'use strict';
 
 class Researcher {
-    
+
     /**
      *
      * @param firstName
@@ -22,6 +22,7 @@ class Researcher {
             this.aadhaar = aadhaar;
             this.userName = userName;
             this.password = password;
+            this.type = 'Researcher';
             if (this.__isContract) {
                 delete this.__isContract;
             }

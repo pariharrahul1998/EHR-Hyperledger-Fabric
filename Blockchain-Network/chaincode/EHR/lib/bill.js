@@ -10,9 +10,13 @@ class Bill {
      * @param laboratoryId
      * @param pharmacyId
      * @param time
+     * @param amount
+     * @param record
      * @returns {Bill}
      */
-    constructor(hospitalId, patientId, doctorId, laboratoryId, pharmacyId, time) {
+    constructor(hospitalId, patientId, doctorId, laboratoryId, pharmacyId, time, amount, record) {
+        this.amount = amount;
+        this.record = record;
         this.hospitalId = hospitalId;
         this.patientId = patientId;
         this.doctorId = doctorId;
