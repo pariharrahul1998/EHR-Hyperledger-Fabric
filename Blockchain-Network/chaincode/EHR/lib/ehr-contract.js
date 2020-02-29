@@ -16,6 +16,7 @@ let Appointment = require('./appointment.js');
 let EHR = require('./ehr.js');
 let Insurance = require('./insurance.js');
 let Laboratory = require('./laboratory.js');
+let Pharmacy = require('./pharmacy.js');
 let Researcher = require('./researcher.js');
 let Bill = require('./bill.js');
 let LabRecord = require('./labRecord.js');
@@ -37,8 +38,6 @@ class EhrContract extends Contract {
         console.log('============= START : Initialize Ledger ===========');
 
         //create a patient
-
-
         let patient1 = {};
         patient1.firstName = 'first1';
         patient1.lastName = 'last1';
@@ -51,11 +50,13 @@ class EhrContract extends Contract {
         patient1.password = '12345';
 
 
-        let response = await this.createPatient(ctx, JSON.stringify(patient1));
-        console.log(response);
+        // let response = await this.createPatient(ctx, JSON.stringify(patient1));
+        // console.log(response);
+        let newPatient = await new Patient(patient1.firstName, patient1.lastName, patient1.address, patient1.aadhaar, patient1.DOB, patient1.gender, patient1.bloodGroup, patient1.userName, patient1.password);
+        await ctx.stub.putState(newPatient.userName, Buffer.from(JSON.stringify(newPatient)));
+        console.log(newPatient);
 
         //create a hospital
-
         let hospital = {};
         hospital.name = 'name';
         hospital.userName = 'userName';
@@ -63,12 +64,13 @@ class EhrContract extends Contract {
         hospital.address = 'address';
         hospital.registrationId = 'registrationId';
 
-        response = await this.createHospital(ctx, JSON.stringify(hospital));
-        console.log(response);
-
+        // response = await this.createHospital(ctx, JSON.stringify(hospital));
+        // console.log(response);
+        let newHospital = await new Hospital(hospital.name, hospital.registrationId, hospital.userName, hospital.password, hospital.address);
+        await ctx.stub.putState(newHospital.registrationId, Buffer.from(JSON.stringify(newHospital)));
+        console.log(newHospital);
 
         //create a doctor
-
         let doctor = {};
         doctor.firstName = 'firstName';
         doctor.lastName = 'lastName';
@@ -84,12 +86,11 @@ class EhrContract extends Contract {
 
         // response = await this.createDoctor(ctx, JSON.stringify(doctor));
         // console.log(response);
-
         let newDoctor = await new Doctor(doctor.firstName, doctor.lastName, doctor.address, doctor.aadhaar, doctor.medicalRegistrationNo, doctor.DOB, doctor.gender, doctor.userName, doctor.password);
+        await ctx.stub.putState(newDoctor.medicalRegistrationNo, Buffer.from(JSON.stringify(newDoctor)));
         console.log(newDoctor);
 
         //create an appointment
-
         let appointment = {};
         appointment.hospitalId = 'registrationId';
         appointment.patientId = 'pariharrahul2002';
@@ -98,9 +99,8 @@ class EhrContract extends Contract {
 
         // response = await this.createAppointment(ctx, JSON.stringify(appointment));
         // console.log(response);
-
-
         let newAppointment = await new Appointment(appointment.hospitalId, appointment.patientId, appointment.description, appointment.time);
+        await ctx.stub.putState(newAppointment.appointmentId, Buffer.from(JSON.stringify(newAppointment)));
         console.log(newAppointment);
 
         /*
@@ -111,12 +111,146 @@ class EhrContract extends Contract {
                 assign.appointmentId = hospital.appointments[0];
                 assign.doctorId = 'medicalRegistrationNo';
                 assign.hospitalId = 'registrationId';
-
-
                 response = await this.assignDoctor(ctx, JSON.stringify(assign));
                 console.log(response);
+         */
 
-        */
+        //create an EHR
+        let ehr = {};
+        ehr.hospitalId = hospital.registrationId;
+        ehr.patientId = patient1.userName;
+        ehr.doctorId = doctor.medicalRegistrationNo;
+        ehr.appointmentId = 'appointmentId';
+        ehr.record = 'Everything is fine';
+        ehr.time = 'time';
+
+        // response = await this.createEhr(ctx, JSON.stringify(ehr),ehr.record);
+        // console.log(response);
+        let newEHR = await new EHR(ehr.patientId, ehr.doctorId, ehr.hospitalId, ehr.record, ehr.time);
+        await ctx.stub.putState(newEHR.ehrId, Buffer.from(JSON.stringify(newEHR)));
+        console.log(newEHR);
+
+        //create a pharmacy
+        let pharmacy = {};
+        pharmacy.hospitalId = hospital.registrationId;
+        pharmacy.registrationId = 'registrationIdPharmacy';
+        pharmacy.userName = 'userNamePharmacy';
+        pharmacy.password = 'passwordPharmacy';
+
+        // response = await this.createPharmacy(ctx, JSON.stringify(pharmacy));
+        // console.log(response);
+        let newPharmacy = await new Pharmacy(pharmacy.userName, pharmacy.password, pharmacy.hospitalId, pharmacy.registrationId);
+        await ctx.stub.putState(newPatient.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
+        console.log(newPharmacy);
+
+        //generate a medicine receipt
+        let medicineReceipt = {};
+        medicineReceipt.hospitalId = hospital.registrationId;
+        medicineReceipt.patientId = patient1.userName;
+        medicineReceipt.doctorId = doctor.medicalRegistrationNo;
+        medicineReceipt.pharmacyId = 'registrationIdPharmacy';
+        medicineReceipt.record = 'Everything is fine';
+        medicineReceipt.time = 'time';
+
+        // response = await this.generateMedicineReceipt(ctx, JSON.stringify(medicineReceipt));
+        // console.log(response);
+        let newMedicineReceipt = await new MedicineReceipt(medicineReceipt.hospitalId, medicineReceipt.doctorId, medicineReceipt.pharmacyId, medicineReceipt.patientId, medicineReceipt.time, medicineReceipt.record);
+        await ctx.stub.putState(newMedicineReceipt.medicineReceiptId, Buffer.from(JSON.stringify(newMedicineReceipt)));
+        console.log(newMedicineReceipt);
+
+        //create a laboratory
+        let laboratory = {};
+        laboratory.hospitalId = hospital.registrationId;
+        laboratory.registrationId = 'registrationIdLaboratory';
+        laboratory.userName = 'userNameLaboratory';
+        laboratory.password = 'passwordLaboratory';
+
+        // response = await this.createLaboratory(ctx, JSON.stringify(laboratory));
+        // console.log(response);
+        let newLaboratory = await new Laboratory(laboratory.userName, laboratory.password, laboratory.hospitalId, laboratory.registrationId);
+        await ctx.stub.putState(newLaboratory.registrationId, Buffer.from(JSON.stringify(newLaboratory)));
+        console.log(newLaboratory);
+
+        //generate a lab record
+        let labRecord = {};
+        labRecord.hospitalId = hospital.registrationId;
+        labRecord.patientId = patient1.userName;
+        labRecord.doctorId = doctor.medicalRegistrationNo;
+        labRecord.laboratoryId = 'registrationIdLaboratory';
+        labRecord.record = 'Everything is fine';
+        labRecord.time = 'time';
+
+        // response = await this.generateLabRecord(ctx, JSON.stringify(labRecord));
+        // console.log(response);
+        let newLabRecord = await new LabRecord(labRecord.hospitalId, labRecord.doctorId, labRecord.laboratoryId, labRecord.patientId, labRecord.time, labRecord.record);
+        await ctx.stub.putState(newLabRecord.medicineReceiptId, Buffer.from(JSON.stringify(newLabRecord)));
+        console.log(newLabRecord);
+
+        //create a researcher
+        let researcher = {};
+        researcher.firstName = 'firstNameResearcher';
+        researcher.lastName = 'lastNameResearcher';
+        researcher.DOB = 'DOBResearcher';
+        researcher.gender = 'genderResearcher';
+        researcher.aadhaar = 'aadhaarResearcher';
+        researcher.userName = 'researcherUserName';
+        researcher.password = 'researcherPassword';
+
+        // response = await this.createResearcher(ctx, JSON.stringify(researcher));
+        // console.log(response);
+        let newResearcher = await new Researcher(researcher.name, researcher.userName, researcher.password, researcher.address, researcher.registrationId);
+        await ctx.stub.putState(newResearcher.registrationId, Buffer.from(JSON.stringify(newResearcher)));
+        console.log(newResearcher);
+
+        //create a insurer
+        let insurer = {};
+        insurer.name = 'nameInsurer';
+        insurer.userName = 'userNameInsurer';
+        insurer.password = 'passwordInsurer';
+        insurer.address = 'addressInsurer';
+        insurer.registrationId = 'registrationIdInsurer';
+
+        // response = await this.createInsurance(ctx, JSON.stringify(insurer));
+        // console.log(insurer);
+        let newInsurer = await new Insurance(insurer.name, insurer.userName, insurer.password, insurer.address, insurer.registrationId);
+        await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
+        console.log(newInsurer);
+
+        //generate Bill after the end of all treatment
+        let bill = {};
+        bill.amount = 'amount';
+        bill.record = 'record';
+        bill.hospitalId = hospital.registrationId;
+        bill.patientId = patient1.userName;
+        bill.doctorId = doctor.medicalRegistrationNo;
+        bill.laboratoryId = laboratory.registrationId;
+        bill.time = 'time';
+        bill.pharmacyId = pharmacy.registrationId;
+
+        // response = await this.generateBill(ctx, JSON.stringify(bill));
+        // console.log(response);
+        let newBill = await new Bill(bill.hospitalId, bill.patientId, bill.doctorId, bill.laboratoryId, bill.pharmacyId, bill.time, bill.amount, bill.record);
+        await ctx.stub.putState(newBill.billId, Buffer.from(JSON.stringify(newBill)));
+        console.log(newBill);
+
+
+        //request access
+        let request = {};
+        request.patientId = patient1.userName;
+        request.requesterId = doctor.medicalRegistrationNo;
+        let response = await this.requestAccess(ctx, JSON.stringify(request));
+        console.log(response);
+
+        //grant access
+        request.documentIds = [];
+        response = await this.grantAccess(ctx, JSON.stringify(request));
+        console.log(response);
+
+        //revoke access
+        response = await this.revokeAccess(ctx, JSON.stringify(request));
+        console.log(response);
+
+
         console.log('============= END : Initialize Ledger ===========');
     }
 
@@ -167,6 +301,12 @@ class EhrContract extends Contract {
         }
     }
 
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
     async generateLabRecord(ctx, args) {
         args = JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
@@ -195,12 +335,18 @@ class EhrContract extends Contract {
         throw new Error(`Either the patient or hospital entity is not correct`);
     }
 
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
     async generateMedicineReceipt(ctx, args) {
         args = JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let doctorExists = await this.assetExists(ctx, args.doctorId);
-        let pharmacyExists = await this.assetExists(ctx, args.laboratoryId);
+        let pharmacyExists = await this.assetExists(ctx, args.pharmacyId);
 
         if (hospitalExists && patientExists && doctorExists && pharmacyExists) {
 
@@ -273,7 +419,7 @@ class EhrContract extends Contract {
                 let permissionedIds = patient.permissionedIds;
                 permissionedIds[args.requesterId] = args.documentIds;
                 patient.permissionedIds = permissionedIds;
-                await ctx.stub.putstate(patient.userName, Buffer.from(JSON.stringify(patient)));
+                await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
 
                 //update the patient in the patient array for the requester
                 let requesterAsBytes = await ctx.stub.getState(args.requesterId);
@@ -308,8 +454,8 @@ class EhrContract extends Contract {
             let permissionedIds = patient.permissionedIds;
 
             //check whether that id is present in the permissionedIds or not and if yes remove that entry
-            if (permissionedIds.has(args.requesterId)) {
-                permissionedIds.delete(args.requesterId);
+            if (args.requesterId in permissionedIds) {
+                delete permissionedIds[args.requesterId];
                 patient.permissionedIds = permissionedIds;
                 await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
 
@@ -370,7 +516,7 @@ class EhrContract extends Contract {
      */
     async createHospital(ctx, args) {
         args = JSON.parse(args);
-        let hospitalExists = await this.assetExists(ctx, args.hospitalId);
+        let hospitalExists = await this.assetExists(ctx, args.registrationId);
 
         if (!hospitalExists) {
             // initialise empty lists of id's of doctors, patients and appointments
@@ -520,7 +666,7 @@ class EhrContract extends Contract {
             let newResearcher = await new Researcher(args.name, args.userName, args.password, args.address, args.registrationId);
             newResearcher.patients = patients;
 
-            await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
+            await ctx.stub.putState(newResearcher.registrationId, Buffer.from(JSON.stringify(newResearcher)));
 
             let response = `a new researcher created with id ${newResearcher.userName} `;
             return response;
@@ -757,12 +903,118 @@ class EhrContract extends Contract {
     /**
      *
      * @param ctx
+     * @param args
+     * @returns {Promise<string>}
+     */
+    async removeEmergencyContact(ctx, args) {
+        args = JSON.parse(args);
+        let patientExists = await this.assetExists(ctx, args.patientId);
+        if (patientExists) {
+            //the emergency contact is deleted and the patient is updated
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = await JSON.parse(patientAsBytes);
+            let emergencyContacts = patient.emergencyContacts;
+            let index = emergencyContacts.indexOf(args.contactId);
+            if (index > -1) {
+                emergencyContacts.splice(index, 1);
+                patient.emergencyContacts = emergencyContacts;
+                await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+            }
+
+            let response = `the emergency contact ${args.contactId} is deleted for the patient ${patient.userName}`;
+            return response;
+        } else {
+            throw new Error(`the patient id ${args.patientId}  doesn't exist`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
      * @param id
      * @returns {Promise<boolean|boolean>}
      */
     async assetExists(ctx, id) {
         const buffer = await ctx.stub.getState(id);
         return (!!buffer && buffer.length > 0);
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param objectType
+     * @returns {Promise<string>}
+     */
+    async queryWithObjectType(ctx, objectType) {
+        let queryString = {
+            selector: {
+                type: objectType
+            }
+        };
+
+        return await this.queryWithQueryString(ctx, queryString);
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param queryString
+     * @returns {Promise<string>}
+     */
+    async queryWithQueryString(ctx, queryString) {
+
+        console.log('query String');
+        console.log(JSON.stringify(queryString));
+
+        let resultsIterator = await ctx.stub.getQueryResult(queryString);
+
+        let allResults = [];
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            let res = await resultsIterator.next();
+
+            if (res.value && res.value.value.toString()) {
+                let jsonRes = {};
+
+                console.log(res.value.value.toString('utf8'));
+
+                jsonRes.Key = res.value.key;
+
+                try {
+                    jsonRes.Record = JSON.parse(res.value.value.toString('utf8'));
+                } catch (err) {
+                    console.log(err);
+                    jsonRes.Record = res.value.value.toString('utf8');
+                }
+
+                allResults.push(jsonRes);
+            }
+            if (res.done) {
+                console.log('end of data');
+                await resultsIterator.close();
+                console.info(allResults);
+                console.log(JSON.stringify(allResults));
+                return JSON.stringify(allResults);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<void>}
+     */
+    async deleteAsset(ctx, args) {
+        args = JSON.parse(args);
+        let assetExists = await this.assetExists(ctx, args.assetId);
+        if (assetExists) {
+            await ctx.stub.deleteState(args.assetId);
+            let response = `asset with id ${args.assetId} has been deleted`;
+        } else {
+            throw new Error(`No such asset with id ${args.assetId}`);
+        }
     }
 
 }

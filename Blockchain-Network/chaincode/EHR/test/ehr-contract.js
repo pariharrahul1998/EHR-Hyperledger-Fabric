@@ -54,8 +54,8 @@ describe('EhrContract', () => {
         doctor.password = 'password';
         doctor.type = 'Doctor';
         doctor.hospitalId = 'registrationId';
-        doctor.patients = [];
-        doctor.appointments = [];
+        doctor.patients = ['pariharrahul2002'];
+        doctor.appointments = ['appointmentId'];
 
         let patient1 = {};
         patient1.firstName = 'first1';
@@ -67,6 +67,14 @@ describe('EhrContract', () => {
         patient1.bloodGroup = 'AB+';
         patient1.userName = 'pariharrahul2002';
         patient1.password = '12345';
+        patient1.appointments = ['appointmentId'];
+        patient1.bills = ['billId'];
+        patient1.medicineReceipts = [];
+        patient1.labRecords = [];
+        patient1.ehrs = [];
+        patient1.requesters = ['medicalRegistrationNo'];
+        patient1.permissionedIds = {};
+        patient1.permissionedIds[doctor.medicalRegistrationNo] = ['1', '2'];
 
         let hospital = {};
         hospital.name = 'name';
@@ -75,6 +83,9 @@ describe('EhrContract', () => {
         hospital.address = 'address';
         hospital.registrationId = 'registrationId';
         hospital.appointments = ['appointmentId'];
+        hospital.bills = ['billId'];
+        hospital.pharmacies = ['registrationIdPharmacy'];
+        hospital.laboratories = ['registrationIdLaboratory'];
 
         let appointment = {};
         appointment.hospitalId = 'registrationId';
@@ -82,6 +93,18 @@ describe('EhrContract', () => {
         appointment.description = 'description';
         appointment.time = 'time';
         appointment.appointmentId = 'appointmentId';
+
+        let pharmacy = {};
+        pharmacy.hospitalId = hospital.registrationId;
+        pharmacy.registrationId = 'registrationIdPharmacy';
+        pharmacy.userName = 'userNamePharmacy';
+        pharmacy.password = 'passwordPharmacy';
+
+        let laboratory = {};
+        laboratory.hospitalId = hospital.registrationId;
+        laboratory.registrationId = 'registrationIdLaboratory';
+        laboratory.userName = 'userNameLaboratory';
+        laboratory.password = 'passwordLaboratory';
 
 
         contract = new EhrContract();
@@ -92,68 +115,8 @@ describe('EhrContract', () => {
         ctx.stub.getState.withArgs('pariharrahul2002').resolves(Buffer.from(JSON.stringify(patient1)));
         ctx.stub.getState.withArgs('medicalRegistrationNo').resolves(Buffer.from(JSON.stringify(doctor)));
         ctx.stub.getState.withArgs('appointmentId').resolves(Buffer.from(JSON.stringify(appointment)));
-    });
-
-    describe('#ehrExists', () => {
-
-        it('should return true for a ehr', async () => {
-            await contract.ehrExists(ctx, '1001').should.eventually.be.true;
-        });
-
-        it('should return false for a ehr that does not exist', async () => {
-            await contract.ehrExists(ctx, '1003').should.eventually.be.false;
-        });
-
-    });
-
-    describe('#createEhr', () => {
-
-        it('should create a ehr', async () => {
-            await contract.createEhr(ctx, '1003', 'ehr 1003 value');
-            ctx.stub.putState.should.have.been.calledOnceWithExactly('1003', Buffer.from('{"value":"ehr 1003 value"}'));
-        });
-
-        it('should throw an error for a ehr that already exists', async () => {
-            await contract.createEhr(ctx, '1001', 'myvalue').should.be.rejectedWith(/The ehr 1001 already exists/);
-        });
-
-    });
-
-    describe('#readEhr', () => {
-
-        it('should return a ehr', async () => {
-            await contract.readEhr(ctx, '1001').should.eventually.deep.equal({value: 'ehr 1001 value'});
-        });
-
-        it('should throw an error for a ehr that does not exist', async () => {
-            await contract.readEhr(ctx, '1003').should.be.rejectedWith(/The ehr 1003 does not exist/);
-        });
-
-    });
-
-    describe('#updateEhr', () => {
-
-        it('should update a ehr', async () => {
-            await contract.updateEhr(ctx, '1001', 'ehr 1001 new value');
-            ctx.stub.putState.should.have.been.calledOnceWithExactly('1001', Buffer.from('{"value":"ehr 1001 new value"}'));
-        });
-
-        it('should throw an error for a ehr that does not exist', async () => {
-            await contract.updateEhr(ctx, '1003', 'ehr 1003 new value').should.be.rejectedWith(/The ehr 1003 does not exist/);
-        });
-
-    });
-
-    describe('#deleteEhr', () => {
-
-        it('should delete a ehr', async () => {
-            await contract.deleteEhr(ctx, '1001');
-            ctx.stub.deleteState.should.have.been.calledOnceWithExactly('1001');
-        });
-
-        it('should throw an error for a ehr that does not exist', async () => {
-            await contract.deleteEhr(ctx, '1003').should.be.rejectedWith(/The ehr 1003 does not exist/);
-        });
+        ctx.stub.getState.withArgs('registrationIdLaboratory').resolves(Buffer.from(JSON.stringify(laboratory)));
+        ctx.stub.getState.withArgs('registrationIdPharmacy').resolves(Buffer.from(JSON.stringify(pharmacy)));
 
     });
 
