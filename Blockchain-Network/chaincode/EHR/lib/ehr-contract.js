@@ -100,21 +100,22 @@ class EhrContract extends Contract {
         // response = await this.createAppointment(ctx, JSON.stringify(appointment));
         // console.log(response);
         let newAppointment = await new Appointment(appointment.hospitalId, appointment.patientId, appointment.description, appointment.time);
+        newAppointment.appointmentId = 'appointmentId';
         await ctx.stub.putState(newAppointment.appointmentId, Buffer.from(JSON.stringify(newAppointment)));
         console.log(newAppointment);
-
-        /*
-                //assign appointment
-                let hospitalAsBytes = await ctx.stub.getState(hospital.registrationId);
-                hospital = await JSON.parse(hospitalAsBytes);
-                let assign = {};
-                assign.appointmentId = hospital.appointments[0];
-                assign.doctorId = 'medicalRegistrationNo';
-                assign.hospitalId = 'registrationId';
-                response = await this.assignDoctor(ctx, JSON.stringify(assign));
-                console.log(response);
-         */
-
+//
+//         /*
+//                 //assign appointment
+//                 let hospitalAsBytes = await ctx.stub.getState(hospital.registrationId);
+//                 hospital = await JSON.parse(hospitalAsBytes);
+//                 let assign = {};
+//                 assign.appointmentId = hospital.appointments[0];
+//                 assign.doctorId = 'medicalRegistrationNo';
+//                 assign.hospitalId = 'registrationId';
+//                 response = await this.assignDoctor(ctx, JSON.stringify(assign));
+//                 console.log(response);
+//          */
+//
         //create an EHR
         let ehr = {};
         ehr.hospitalId = hospital.registrationId;
@@ -127,6 +128,7 @@ class EhrContract extends Contract {
         // response = await this.createEhr(ctx, JSON.stringify(ehr),ehr.record);
         // console.log(response);
         let newEHR = await new EHR(ehr.patientId, ehr.doctorId, ehr.hospitalId, ehr.record, ehr.time);
+        newEHR.ehrId = 'ehrId';
         await ctx.stub.putState(newEHR.ehrId, Buffer.from(JSON.stringify(newEHR)));
         console.log(newEHR);
 
@@ -140,7 +142,7 @@ class EhrContract extends Contract {
         // response = await this.createPharmacy(ctx, JSON.stringify(pharmacy));
         // console.log(response);
         let newPharmacy = await new Pharmacy(pharmacy.userName, pharmacy.password, pharmacy.hospitalId, pharmacy.registrationId);
-        await ctx.stub.putState(newPatient.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
+        await ctx.stub.putState(newPharmacy.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
         console.log(newPharmacy);
 
         //generate a medicine receipt
@@ -155,6 +157,7 @@ class EhrContract extends Contract {
         // response = await this.generateMedicineReceipt(ctx, JSON.stringify(medicineReceipt));
         // console.log(response);
         let newMedicineReceipt = await new MedicineReceipt(medicineReceipt.hospitalId, medicineReceipt.doctorId, medicineReceipt.pharmacyId, medicineReceipt.patientId, medicineReceipt.time, medicineReceipt.record);
+        newMedicineReceipt.medicineReceiptId = 'medicineReceiptId';
         await ctx.stub.putState(newMedicineReceipt.medicineReceiptId, Buffer.from(JSON.stringify(newMedicineReceipt)));
         console.log(newMedicineReceipt);
 
@@ -183,22 +186,21 @@ class EhrContract extends Contract {
         // response = await this.generateLabRecord(ctx, JSON.stringify(labRecord));
         // console.log(response);
         let newLabRecord = await new LabRecord(labRecord.hospitalId, labRecord.doctorId, labRecord.laboratoryId, labRecord.patientId, labRecord.time, labRecord.record);
-        await ctx.stub.putState(newLabRecord.medicineReceiptId, Buffer.from(JSON.stringify(newLabRecord)));
+        newLabRecord.labRecordId = 'labRecordId';
+        await ctx.stub.putState(newLabRecord.labRecordId, Buffer.from(JSON.stringify(newLabRecord)));
         console.log(newLabRecord);
 
         //create a researcher
         let researcher = {};
-        researcher.firstName = 'firstNameResearcher';
-        researcher.lastName = 'lastNameResearcher';
-        researcher.DOB = 'DOBResearcher';
-        researcher.gender = 'genderResearcher';
-        researcher.aadhaar = 'aadhaarResearcher';
-        researcher.userName = 'researcherUserName';
-        researcher.password = 'researcherPassword';
+        researcher.name = 'nameResearcher';
+        researcher.userName = 'userNameResearcher';
+        researcher.password = 'passwordResearcher';
+        researcher.address = 'addressResearcher';
+        researcher.registrationId = 'registrationIdResearcher';
 
         // response = await this.createResearcher(ctx, JSON.stringify(researcher));
         // console.log(response);
-        let newResearcher = await new Researcher(researcher.name, researcher.userName, researcher.password, researcher.address, researcher.registrationId);
+        let newResearcher = await new Researcher(researcher.name, researcher.registrationId, researcher.userName, researcher.password, researcher.address);
         await ctx.stub.putState(newResearcher.registrationId, Buffer.from(JSON.stringify(newResearcher)));
         console.log(newResearcher);
 
@@ -212,7 +214,7 @@ class EhrContract extends Contract {
 
         // response = await this.createInsurance(ctx, JSON.stringify(insurer));
         // console.log(insurer);
-        let newInsurer = await new Insurance(insurer.name, insurer.userName, insurer.password, insurer.address, insurer.registrationId);
+        let newInsurer = await new Insurance(insurer.name, insurer.registrationId, insurer.userName, insurer.password, insurer.address);
         await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
         console.log(newInsurer);
 
@@ -230,26 +232,27 @@ class EhrContract extends Contract {
         // response = await this.generateBill(ctx, JSON.stringify(bill));
         // console.log(response);
         let newBill = await new Bill(bill.hospitalId, bill.patientId, bill.doctorId, bill.laboratoryId, bill.pharmacyId, bill.time, bill.amount, bill.record);
+        newBill.billId = 'billId';
         await ctx.stub.putState(newBill.billId, Buffer.from(JSON.stringify(newBill)));
         console.log(newBill);
+        /*
 
+                //request access
+                let request = {};
+                request.patientId = patient1.userName;
+                request.requesterId = doctor.medicalRegistrationNo;
+                let response = await this.requestAccess(ctx, JSON.stringify(request));
+                console.log(response);
 
-        //request access
-        let request = {};
-        request.patientId = patient1.userName;
-        request.requesterId = doctor.medicalRegistrationNo;
-        let response = await this.requestAccess(ctx, JSON.stringify(request));
-        console.log(response);
+                //grant access
+                request.documentIds = [];
+                response = await this.grantAccess(ctx, JSON.stringify(request));
+                console.log(response);
 
-        //grant access
-        request.documentIds = [];
-        response = await this.grantAccess(ctx, JSON.stringify(request));
-        console.log(response);
-
-        //revoke access
-        response = await this.revokeAccess(ctx, JSON.stringify(request));
-        console.log(response);
-
+                //revoke access
+                response = await this.revokeAccess(ctx, JSON.stringify(request));
+                console.log(response);
+        */
 
         console.log('============= END : Initialize Ledger ===========');
     }

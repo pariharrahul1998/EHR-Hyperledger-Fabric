@@ -4,39 +4,38 @@ class Researcher {
 
     /**
      *
-     * @param firstName
-     * @param lastName
-     * @param DOB
-     * @param gender
-     * @param aadhaar
+     * @param name
+     * @param registrationId
      * @param userName
      * @param password
+     * @param address
      * @returns {Researcher}
      */
-    constructor(firstName, lastName, DOB, gender, aadhaar, userName, password) {
-        if (this.validateAadhaar(aadhaar)) {
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.DOB = DOB;
-            this.gender = gender;
-            this.aadhaar = aadhaar;
+    constructor(name, registrationId, userName, password, address) {
+
+        if (this.validateRegistrationId(registrationId)) {
+            this.name = name;
             this.userName = userName;
             this.password = password;
+            this.address = address;
+            this.registrationId = registrationId;
             this.type = 'Researcher';
             if (this.__isContract) {
                 delete this.__isContract;
             }
             return this;
+        } else {
+            throw new Error(`this registrationid ${registrationId} is not valid`);
         }
     }
 
     /**
      *
-     * @param aadhaar
-     * @returns {Promise<boolean>}
+     * @param registrationId
+     * @returns {boolean}
      */
-    async validateAadhaar(aadhaar) {
-        return !!aadhaar;
+    validateRegistrationId(registrationId) {
+        return !!registrationId;
     }
 }
 
