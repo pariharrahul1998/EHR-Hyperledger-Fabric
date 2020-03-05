@@ -4,16 +4,17 @@ class MedicineReceipt {
 
     /**
      *
+     * @param medicineReceiptId
      * @param hospitalId
      * @param doctorId
-     * @param laboratoryId
+     * @param pharmacyId
      * @param patientId
      * @param time
      * @param record
      * @returns {MedicineReceipt}
      */
 
-    constructor(hospitalId, doctorId, pharmacyId, patientId, time, record) {
+    constructor(medicineReceiptId, hospitalId, doctorId, pharmacyId, patientId, time, record) {
         this.hospitalId = hospitalId;
         this.doctorId = doctorId;
         this.pharmacyId = pharmacyId;
@@ -21,7 +22,7 @@ class MedicineReceipt {
         this.time = time;
         this.record = record;
         this.type = 'MedicineReceipt';
-        this.medicineReceiptId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        this.medicineReceiptId = medicineReceiptId;
         return this;
     }
 }

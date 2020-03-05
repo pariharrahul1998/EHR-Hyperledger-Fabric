@@ -4,6 +4,7 @@ class Bill {
 
     /**
      *
+     * @param billId
      * @param hospitalId
      * @param patientId
      * @param doctorId
@@ -14,7 +15,7 @@ class Bill {
      * @param record
      * @returns {Bill}
      */
-    constructor(hospitalId, patientId, doctorId, laboratoryId, pharmacyId, time, amount, record) {
+    constructor(billId, hospitalId, patientId, doctorId, laboratoryId, pharmacyId, time, amount, record) {
         this.amount = amount;
         this.record = record;
         this.hospitalId = hospitalId;
@@ -24,7 +25,7 @@ class Bill {
         this.time = time;
         this.pharmacyId = pharmacyId;
         this.type = 'Bill';
-        this.billId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        this.billId = billId;
         return this;
     }
 }
