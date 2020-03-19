@@ -83,10 +83,11 @@ class EhrContract extends Contract {
         doctor.password = 'password';
         doctor.type = 'Doctor';
         doctor.hospitalId = 'registrationId';
+        doctor.specialisation = 'gynec';
 
         // response = await this.createDoctor(ctx, JSON.stringify(doctor));
         // console.log(response);
-        let newDoctor = await new Doctor(doctor.firstName, doctor.lastName, doctor.address, doctor.aadhaar, doctor.medicalRegistrationNo, doctor.DOB, doctor.gender, doctor.userName, doctor.password);
+        let newDoctor = await new Doctor(doctor.firstName, doctor.lastName, doctor.address, doctor.aadhaar, doctor.medicalRegistrationNo, doctor.DOB, doctor.gender, doctor.userName, doctor.password, doctor.specialisation);
         await ctx.stub.putState(newDoctor.medicalRegistrationNo, Buffer.from(JSON.stringify(newDoctor)));
         console.log(newDoctor);
 
@@ -256,11 +257,6 @@ class EhrContract extends Contract {
         console.log('============= END : Initialize Ledger ===========');
     }
 
-    async ehrExists(ctx, ehrId) {
-        const buffer = await ctx.stub.getState(ehrId);
-        return (!!buffer && buffer.length > 0);
-    }
-
     /**
      *
      * @param ctx
@@ -269,7 +265,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createEhr(ctx, args, record) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let doctorExists = await this.assetExists(ctx, args.doctorId);
@@ -295,6 +291,20 @@ class EhrContract extends Contract {
             patient.ehrs = ehrs;
             await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
 
+            //update the doctor with tha appointments and make the patient marked Attended
+            let doctorAsBytes = await ctx.stub.getState(args.doctorId);
+            let doctor = JSON.parse(patientAsBytes);
+            appointments = doctor.appointments;
+            index = appointments.indexOf(args.appointmentId);
+            if (index > -1) {
+                appointments.splice(index, 1);
+                patient.appointments = appointments;
+            }
+            let patientsAttended = doctor.patientsAttended;
+            patientsAttended.push(args.patientId);
+            doctor.patientsAttended = patientsAttended;
+            await ctx.stub.putState(doctor.medicalRegistrationNo, Buffer.from(JSON.stringify(doctor)));
+
             let response = `an EHR is created with id${newEHR.ehrId} and stored in the world state`;
             return response;
 
@@ -310,7 +320,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async generateLabRecord(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let doctorExists = await this.assetExists(ctx, args.doctorId);
@@ -322,13 +332,21 @@ class EhrContract extends Contract {
             let newLabRecord = await new LabRecord(args.labRecordId, args.hospitalId, args.doctorId, args.laboratoryId, args.patientId, args.time, args.record);
             await ctx.stub.putState(newLabRecord.labRecordId, Buffer.from(JSON.stringify(newLabRecord)));
 
-            //update the patient with the bill
+            //update the patient with the lab record
             let patientAsBytes = await ctx.stub.getState(args.patientId);
             let patient = JSON.parse(patientAsBytes);
             let labRecords = patient.labRecords;
             labRecords.push(newLabRecord.labRecordId);
             patient.labRecords = labRecords;
             await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+
+            //update the laboratory with the patient attended
+            let laboratoryAsBytes = await ctx.stub.getState(args.laboratoryId);
+            let laboratory = JSON.parse(laboratoryAsBytes);
+            let patientsAttended = laboratory.patientsAttended;
+            patientsAttended.push(patient.userName);
+            laboratory.patientsAttended = patientsAttended;
+            await ctx.stub.putState(laboratory.registrationId, Buffer.from(JSON.stringify(laboratory)));
 
             let response = `LabRecord has been generated with id ${newLabRecord.labRecordId} and updated for both the patient`;
             return response;
@@ -344,7 +362,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async generateMedicineReceipt(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let doctorExists = await this.assetExists(ctx, args.doctorId);
@@ -356,13 +374,21 @@ class EhrContract extends Contract {
             let newMedicineReceipt = await new MedicineReceipt(args.medicineReceiptId, args.hospitalId, args.doctorId, args.pharmacyId, args.patientId, args.time, args.record);
             await ctx.stub.putState(newMedicineReceipt.medicineReceiptId, Buffer.from(JSON.stringify(newMedicineReceipt)));
 
-            //update the patient with the bill
+            //update the patient with the medicinereceipt
             let patientAsBytes = await ctx.stub.getState(args.patientId);
             let patient = JSON.parse(patientAsBytes);
             let medicineReceipts = patient.medicineReceipts;
             medicineReceipts.push(newMedicineReceipt);
             patient.medicineReceipts = medicineReceipts;
             await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
+
+            //update the pharmacy with the patient attended
+            let pharmacyAsBytes = await ctx.stub.getState(args.pharmacyId);
+            let pharmacy = JSON.parse(pharmacyAsBytes);
+            let patientsAttended = pharmacy.patientsAttended;
+            patientsAttended.push(patient.userName);
+            pharmacy.patientsAttended = patientsAttended;
+            await ctx.stub.putState(pharmacy.registrationId, Buffer.from(JSON.stringify(pharmacy)));
 
             let response = `medicineReceipt has been generated with id ${newMedicineReceipt.medicineReceiptId} and updated for both the patient`;
             return response;
@@ -378,7 +404,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async requestAccess(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let requesterExists = await this.assetExists(ctx, args.requesterId);
         let patientExists = await this.assetExists(ctx, args.patientId);
         if (requesterExists && patientExists) {
@@ -405,7 +431,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async grantAccess(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let requesterExists = await this.assetExists(ctx, args.requesterId);
         if (patientExists && requesterExists) {
@@ -447,7 +473,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async revokeAccess(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let requesterExists = await this.assetExists(ctx, args.requesterId);
         if (patientExists && requesterExists) {
@@ -482,32 +508,361 @@ class EhrContract extends Contract {
         }
     }
 
-    async readEhr(ctx, ehrId) {
-        const exists = await this.ehrExists(ctx, ehrId);
-        if (!exists) {
-            throw new Error(`The ehr ${ehrId} does not exist`);
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<any>}
+     */
+    async modifyAssetInfo(ctx, args) {
+        let assetAsBytes = await ctx.stub.getState(args.assetId);
+        let asset = JSON.parse(assetAsBytes);
+        if (asset.type === 'Patient') {
+            delete asset.password;
+            delete asset.appointments;
+            delete asset.permissionedIds;
+            delete asset.requesters;
+            delete asset.ehrs;
+            delete asset.bills;
+            delete asset.labRecords;
+            delete asset.medicineReceipts;
+        } else if (asset.type === 'Doctor') {
+            delete asset.password;
+            delete asset.patients;
+            delete asset.appointments;
+            delete asset.patientsAttended;
+        } else if (asset.type === 'Laboratory') {
+            delete asset.password;
+            delete asset.patients;
+            delete asset.patientsAttended;
+        } else if (asset.type === 'Pharmacy') {
+            delete asset.password;
+            delete asset.patients;
+            delete asset.patientsAttended;
+        } else if (asset.type === 'Researcher') {
+            delete asset.password;
+            delete asset.patients;
+        } else if (asset.type === 'Insurance') {
+            delete asset.password;
+            delete asset.patients;
+        } else if (asset.type === 'Hospital') {
+            delete asset.password;
+            delete asset.patients;
         }
-        const buffer = await ctx.stub.getState(ehrId);
-        const asset = JSON.parse(buffer.toString());
         return asset;
     }
 
-    async updateEhr(ctx, ehrId, newValue) {
-        const exists = await this.ehrExists(ctx, ehrId);
-        if (!exists) {
-            throw new Error(`The ehr ${ehrId} does not exist`);
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<any>}
+     */
+    async readHospitalAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let hospitalExists = await this.assetExists(ctx, args.hospitalId);
+        if (hospitalExists) {
+            let hospitalAsBytes = await ctx.stub.getState(args.hospitalId);
+            let hospital = JSON.parse(hospitalAsBytes);
+
+            let assetExits = await this.assetExists(ctx, args.assetId);
+            if (assetExits) {
+                let index = -1;
+                if (args.listType === 'patients') {
+                    index = hospital.patients.indexOf(args.assetId);
+                } else if (args.listType === 'doctors') {
+                    index = hospital.doctors.indexOf(args.assetId);
+                } else if (args.listType === 'pharmacies') {
+                    index = hospital.pharmacies.indexOf(args.assetId);
+                } else if (args.listType === 'laboratories') {
+                    index = hospital.laboratories.indexOf(args.assetId);
+                } else if (args.listType === 'bills') {
+                    index = hospital.bills.indexOf(args.assetId);
+                } else if (args.listType === 'appointments') {
+                    index = hospital.appointments.indexOf(args.assetId);
+                }
+                if (index > -1) {
+                    return await this.modifyAssetInfo(ctx, args);
+                } else {
+                    throw new error(`asset not found`);
+                }
+            } else {
+                throw new error(`the asset ${args.assetId} is not part of the hospital list`);
+            }
         }
-        const asset = {value: newValue};
-        const buffer = Buffer.from(JSON.stringify(asset));
-        await ctx.stub.putState(ehrId, buffer);
     }
 
-    async deleteEhr(ctx, ehrId) {
-        const exists = await this.ehrExists(ctx, ehrId);
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<any|*[]>}
+     */
+    async readDoctorAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let doctorExists = await this.assetExists(ctx, args.doctorId);
+        if (doctorExists) {
+            let doctorAsBytes = await ctx.stub.getState(args.doctorId);
+            let doctor = JSON.parse(doctorAsBytes);
+
+            let assetExits = await this.assetExists(ctx, args.assetId);
+            if (assetExits) {
+                let index = -1;
+                if (args.listType === 'patients') {
+                    index = doctor.patients.indexOf(args.assetId);
+                    if (index > -1) {
+                        return await this.readDocuments(ctx, args.assetId, doctor.medicalRegistrationNo);
+                    }
+                } else {
+                    if (args.listType === 'patientsAttended') {
+                        index = doctor.patientsAttended.indexOf(args.assetId);
+                    } else if (args.listType === 'appointments') {
+                        index = doctor.appointments.indexOf(args.assetId);
+                    }
+                    if (index > -1) {
+                        return await this.modifyAssetInfo(ctx, args);
+                    } else {
+                        throw new error(`asset not found`);
+                    }
+                }
+            } else {
+                throw new error(`asset with id ${args.assetId} doesn't exist for the doctor`);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<*[]|any>}
+     */
+    async readPharmacyAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let pharmacyExists = await this.assetExists(ctx, args.pharmacyId);
+        if (pharmacyExists) {
+            let pharmacyAsBytes = await ctx.stub.getState(args.pharmacyId);
+            let pharmacy = JSON.parse(pharmacyAsBytes);
+
+            let assetExits = await this.assetExists(ctx, args.assetId);
+            if (assetExits) {
+                if (args.listType === 'patients') {
+                    let index = pharmacy.patients.indexOf(args.assetId);
+                    if (index > -1) {
+                        return await this.readDocuments(ctx, args.assetId, pharmacy.registrationId);
+                    }
+                } else if (args.listType === 'patientsAttended') {
+                    let index = pharmacy.patientsAttended.indexOf(args.assetId);
+                    if (index > -1) {
+                        return await this.modifyAssetInfo(ctx, args);
+                    } else {
+                        throw new error(`asset not found`);
+                    }
+                }
+
+            } else {
+                throw new error(`asset with id ${args.assetId} doesn't exist for the pharmacy`);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<any>}
+     */
+    async readPatientAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let patientExists = await this.assetExists(args.patientId);
+        if (patientExists) {
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let assetExists = await this.assetExists(ctx, args.assetId);
+            if (assetExists) {
+                let index = -1;
+                if (args.listType === 'emergencyContacts') {
+                    index = patient.emergencyContacts.indexOf(args.assetId);
+                } else if (args.listType === 'ehrs') {
+                    index = patient.ehrs.indexOf(args.assetId);
+                } else if (args.listType === 'requesters') {
+                    index = patient.requesters.indexOf(args.assetId);
+                } else if (args.listType === 'bills') {
+                    index = patient.bills.indexOf(args.assetId);
+                } else if (args.listType === 'labRecords') {
+                    index = patient.labRecords.indexOf(args.assetId);
+                } else if (args.listType === 'medicineReceipts') {
+                    index = patient.medicineReceipts.indexOf(args.assetId);
+                } else if (args.listType === 'appointments') {
+                    index = patient.appointments.indexOf(args.assetId);
+                } else if (args.listType === 'permissionedIds') {
+                    let documentIds = patient.permissionedIds[args.assetId];
+                    if (documentIds && documentIds.length() > 0) {
+                        return await this.modifyAssetInfo(ctx, args);
+                    }
+                }
+                if (index > -1) {
+                    return await this.modifyAssetInfo(ctx, args);
+                } else {
+                    throw new error(`asset not found`);
+                }
+            }
+        } else {
+            throw new error(`patient with ide ${args.patientId} doesn't exist`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<*[]|any>}
+     */
+    async readLaboratoryAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let laboratoryExists = await this.assetExists(ctx, args.laboratoryId);
+        if (laboratoryExists) {
+            let laboratoryAsBytes = await ctx.stub.getState(args.laboratoryId);
+            let laboratory = JSON.parse(laboratoryAsBytes);
+
+            let assetExits = await this.assetExists(ctx, args.assetId);
+            if (assetExits) {
+                if (args.listType === 'patients') {
+                    let index = laboratory.patients.indexOf(args.assetId);
+                    if (index > -1) {
+                        return await this.readDocuments(ctx, args.assetId, laboratory.registrationId);
+                    }
+                } else if (args.listType === 'patientsAttended') {
+                    let index = laboratory.patientsAttended.indexOf(args.assetId);
+                    if (index > -1) {
+                        return await this.modifyAssetInfo(ctx, args);
+                    } else {
+                        throw new error(`asset not found`);
+                    }
+                }
+
+            } else {
+                throw new error(`asset with id ${args.assetId} doesn't exist for the laboratory`);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<*[]>}
+     */
+    async readResearcherAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let researcherExists = await this.assetExists(ctx, args.researcherId);
+        if (researcherExists) {
+            let researcherAsBytes = await ctx.stub.getState(args.researcherId);
+            let researcher = JSON.parse(researcherAsBytes);
+            let assetExists = await this.assetExists(ctx, args.assetId);
+            if (assetExists) {
+                let index = researcher.patients.indexOf(args.assetId);
+                if (index > -1) {
+                    return await this.readDocuments(ctx, args.assetId, researcher.registrationId);
+                } else {
+                    throw new error(`asset not found`);
+                }
+            } else {
+                throw new error(`asset ${args.assetId} doesn't exits`);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<*[]>}
+     */
+    async readInsurerAssets(ctx, args) {
+        args = await JSON.parse(args);
+        let insurerExists = await this.assetExists(ctx, args.insurerId);
+        if (insurerExists) {
+            let insurerAsBytes = await ctx.stub.getState(args.insurerId);
+            let insurer = JSON.parse(insurerAsBytes);
+            let assetExists = await this.assetExists(ctx, args.assetId);
+            if (assetExists) {
+                let index = insurer.patients.indexOf(args.assetId);
+                if (index > -1) {
+                    return await this.readDocuments(ctx, args.assetId, insurer.registrationId);
+                } else {
+                    throw new error(`asset not found`);
+                }
+            } else {
+                throw new error(`asset ${args.assetId} doesn't exits`);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param assetId
+     * @returns {Promise<[]>}
+     */
+    async readDocuments(ctx, assetId, requesterId) {
+        let patientAsBytes = await ctx.stub.getState(args.assetId);
+        let patient = JSON.parse(patientAsBytes);
+        let documentIds = patient.permissionedIds[requesterId];
+        let assets = [];
+        //push the patient info first and then the documents along with that
+        assets.push(patient);
+        for (let i = 0; i < documentIds.length; i++) {
+            let documentAsBytes = await ctx.stub.getState(documentIds[i]);
+            let document = JSON.parse(documentAsBytes);
+            assets.push(document);
+        }
+        return assets;
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param id
+     * @returns {Promise<any>}
+     */
+    async getModifiedAsset(ctx, args) {
+        let assetExists = await this.assetExists(args.id);
+        if (assetExists) {
+            let assetAsBytes = await ctx.stub.getState(args.id);
+            let asset = JSON.parse(assetAsBytes);
+            delete asset.password;
+            return asset;
+        } else {
+            throw new error(`the asset with id ${id} doesn't exist`);
+        }
+    }
+
+    /**
+     *
+     * @param ctx
+     * @param args
+     * @returns {Promise<*>}
+     */
+    async verifyPassword(ctx, args) {
+        args = await JSON.parse(args);
+        let assetExists = await this.assetExists(args.id);
+        if (assetExists) {
+            let assetAsBytes = await ctx.stub.getState(args.id);
+            let asset = JSON.parse(assetAsBytes);
+            return asset.password === args.password;
+        } else {
+            throw new error(`the id ${args.id} doesn't exist`);
+        }
+    }
+
+    async updateAsset(ctx, args) {
+        args = await JSON.parse(args);
+        const exists = await this.assetExists(ctx, args.id);
         if (!exists) {
             throw new Error(`The ehr ${ehrId} does not exist`);
         }
-        await ctx.stub.deleteState(ehrId);
+        await ctx.stub.putState(args.id, args);
     }
 
     /**
@@ -517,7 +872,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createHospital(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.registrationId);
 
         if (!hospitalExists) {
@@ -557,7 +912,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async generateBill(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let doctorExists = await this.assetExists(ctx, args.doctorId);
@@ -601,7 +956,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createInsurance(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let insurerExists = await this.assetExists(ctx, args.registrationId);
         if (!insurerExists) {
             let patients = [];
@@ -627,14 +982,16 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createLaboratory(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let laboratoryExists = await this.assetExists(ctx, args.registrationId);
         if (hospitalExists && !laboratoryExists) {
             //create a laboratory and update that in the world state
             let patients = [];
+            let patientsAttended = [];
             let newLaboratory = await new Laboratory(args.userName, args.password, args.hospitalId, args.registrationId);
             newLaboratory.patients = patients;
+            newLaboratory.patientsAttended = patientsAttended;
 
             await ctx.stub.putState(newLaboratory.registrationId, Buffer.from(JSON.stringify(newLaboratory)));
 
@@ -659,7 +1016,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createResearcher(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let researcherExists = await this.assetExists(ctx, args.registrationId);
         if (!researcherExists) {
             let patients = [];
@@ -684,13 +1041,15 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createPharmacy(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let pharmacyExists = await this.assetExists(ctx, args.registrationId);
         if (hospitalExists && !pharmacyExists) {
             let patients = [];
+            let patientsAttended = [];
             let newPharmacy = await new Pharmacy(args.userName, args.password, args.hospitalId, args.registrationId);
             newPharmacy.patients = patients;
+            newPharmacy.patientsAttended = patientsAttended;
 
             await ctx.stub.putState(newPharmacy.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
 
@@ -715,21 +1074,23 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createDoctor(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let doctorExists = await this.assetExists(ctx, args.medicalRegistrationNo);
         if (hospitalExists && !doctorExists) {
             //initialise empty patient requests and patients
             let patients = [];
             let appointments = [];
+            let patientsAttended = [];
 
-            let newDoctor = await new Doctor(args.firstName, args.lastName, args.address, args.aadhaar, args.medicalRegistrationNo, args.DOB, args.gender, args.userName, args.password);
+            let newDoctor = await new Doctor(args.firstName, args.lastName, args.address, args.aadhaar, args.medicalRegistrationNo, args.DOB, args.gender, args.userName, args.password, args.specialisation);
 
             //assign the doctor a hospital and update the info in the hospital's global state
             newDoctor.currentHospital = args.hospitalId;
 
             newDoctor.patients = patients;
             newDoctor.appointments = appointments;
+            newDoctor.patientsAttended = patientsAttended;
 
             //put the doctor in the global state
             await ctx.stub.putState(newDoctor.medicalRegistrationNo, Buffer.from(JSON.stringify(newDoctor)));
@@ -750,7 +1111,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createPatient(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let patientExists = await this.assetExists(ctx, args.userName);
         if (!patientExists) {
             let permissionedIds = {};
@@ -790,7 +1151,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async createAppointment(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
 
         //check whether both the hospital and the patient already exists or not
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
@@ -832,7 +1193,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async assignDoctor(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
 
         //check whether both the doctor and the appointment exists
         let doctorExists = await this.assetExists(ctx, args.doctorId);
@@ -883,7 +1244,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async addEmergencyContact(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let patientExists = await this.assetExists(ctx, args.patientId);
         let contactExists = await this.assetExists(ctx, args.contactId);
         if (patientExists && contactExists) {
@@ -909,7 +1270,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async removeEmergencyContact(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let patientExists = await this.assetExists(ctx, args.patientId);
         if (patientExists) {
             //the emergency contact is deleted and the patient is updated
@@ -1009,7 +1370,7 @@ class EhrContract extends Contract {
      * @returns {Promise<void>}
      */
     async deleteAsset(ctx, args) {
-        args = JSON.parse(args);
+        args = await JSON.parse(args);
         let assetExists = await this.assetExists(ctx, args.assetId);
         if (assetExists) {
             await ctx.stub.deleteState(args.assetId);
@@ -1021,4 +1382,5 @@ class EhrContract extends Contract {
 
 }
 
-module.exports = EhrContract;
+module
+    .exports = EhrContract;
