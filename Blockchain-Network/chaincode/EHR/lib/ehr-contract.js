@@ -293,17 +293,38 @@ class EhrContract extends Contract {
 
             //update the doctor with tha appointments and make the patient marked Attended
             let doctorAsBytes = await ctx.stub.getState(args.doctorId);
-            let doctor = JSON.parse(patientAsBytes);
+            let doctor = JSON.parse(doctorAsBytes);
             appointments = doctor.appointments;
             index = appointments.indexOf(args.appointmentId);
             if (index > -1) {
                 appointments.splice(index, 1);
                 patient.appointments = appointments;
             }
+            index = doctor.patients.indexOf(args.patientId);
+            if (index > -1) {
+                doctor.patients.splice(index, 1);
+            }
+
             let patientsAttended = doctor.patientsAttended;
             patientsAttended.push(args.patientId);
             doctor.patientsAttended = patientsAttended;
             await ctx.stub.putState(doctor.medicalRegistrationNo, Buffer.from(JSON.stringify(doctor)));
+
+            //check whether pharmacy or laboratory appointment is necessary if yes suggest one
+            let pharmacyExists = await this.assetExists(ctx, args.pharmacyId);
+            let laboratoryExists = await this.assetExists(ctx, args.laboratoryId);
+            if (pharmacyExists) {
+                let pharmacyAsBytes = await ctx.stub.getState(args.pharmacyId);
+                let pharmacy = JSON.parse(pharmacyAsBytes);
+                pharmacy.appointments.push(args.patientId);
+                await ctx.stub.putState(pharmacy.registrationId, Buffer.from(JSON.stringify(pharmacy)));
+            }
+            if (laboratoryExists) {
+                let laboratoryAsBytes = await ctx.stub.getState(args.laboratoryId);
+                let laboratory = JSON.parse(laboratoryAsBytes);
+                laboratory.appointments.push(args.patientId);
+                await ctx.stub.putState(laboratory.registrationId, Buffer.from(JSON.stringify(laboratory)));
+            }
 
             let response = `an EHR is created with id${newEHR.ehrId} and stored in the world state`;
             return response;
@@ -346,6 +367,12 @@ class EhrContract extends Contract {
             let patientsAttended = laboratory.patientsAttended;
             patientsAttended.push(patient.userName);
             laboratory.patientsAttended = patientsAttended;
+
+            let index = laboratory.appointments.indexOf(args.patientId);
+            if (index > -1) {
+                laboratory.appointments.splice(index, 1);
+            }
+
             await ctx.stub.putState(laboratory.registrationId, Buffer.from(JSON.stringify(laboratory)));
 
             let response = `LabRecord has been generated with id ${newLabRecord.labRecordId} and updated for both the patient`;
@@ -374,11 +401,11 @@ class EhrContract extends Contract {
             let newMedicineReceipt = await new MedicineReceipt(args.medicineReceiptId, args.hospitalId, args.doctorId, args.pharmacyId, args.patientId, args.time, args.record);
             await ctx.stub.putState(newMedicineReceipt.medicineReceiptId, Buffer.from(JSON.stringify(newMedicineReceipt)));
 
-            //update the patient with the medicinereceipt
+            //update the patient with the medicine receipt
             let patientAsBytes = await ctx.stub.getState(args.patientId);
             let patient = JSON.parse(patientAsBytes);
             let medicineReceipts = patient.medicineReceipts;
-            medicineReceipts.push(newMedicineReceipt);
+            medicineReceipts.push(newMedicineReceipt.medicineReceiptId);
             patient.medicineReceipts = medicineReceipts;
             await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
 
@@ -388,6 +415,12 @@ class EhrContract extends Contract {
             let patientsAttended = pharmacy.patientsAttended;
             patientsAttended.push(patient.userName);
             pharmacy.patientsAttended = patientsAttended;
+
+            let index = pharmacy.appointments.indexOf(args.patientId);
+            if (index > -1) {
+                pharmacy.appointments.splice(index, 1);
+            }
+
             await ctx.stub.putState(pharmacy.registrationId, Buffer.from(JSON.stringify(pharmacy)));
 
             let response = `medicineReceipt has been generated with id ${newMedicineReceipt.medicineReceiptId} and updated for both the patient`;
@@ -414,6 +447,7 @@ class EhrContract extends Contract {
             let patient = JSON.parse(patientAsBytes);
             let requesters = patient.requesters;
             requesters.push(args.requesterId);
+            patient.requesters = requesters;
 
             await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
 
@@ -454,6 +488,7 @@ class EhrContract extends Contract {
                 let requester = JSON.parse(requesterAsBytes);
                 let patients = requester.patients;
                 patients.push(args.patientId);
+                requester.patients = patients;
                 await ctx.stub.putState(args.requesterId, Buffer.from(JSON.stringify(requester)));
 
                 let response = `Access has been provided to the requester with the id ${args.requesterId}`;
@@ -584,10 +619,10 @@ class EhrContract extends Contract {
                 if (index > -1) {
                     return await this.modifyAssetInfo(ctx, args);
                 } else {
-                    throw new error(`asset not found`);
+                    throw new Error(`asset not found`);
                 }
             } else {
-                throw new error(`the asset ${args.assetId} is not part of the hospital list`);
+                throw new Error(`the asset ${args.assetId} is not part of the hospital list`);
             }
         }
     }
@@ -622,11 +657,11 @@ class EhrContract extends Contract {
                     if (index > -1) {
                         return await this.modifyAssetInfo(ctx, args);
                     } else {
-                        throw new error(`asset not found`);
+                        throw new Error(`asset not found`);
                     }
                 }
             } else {
-                throw new error(`asset with id ${args.assetId} doesn't exist for the doctor`);
+                throw new Error(`asset with id ${args.assetId} doesn't exist for the doctor`);
             }
         }
     }
@@ -651,20 +686,27 @@ class EhrContract extends Contract {
                     if (index > -1) {
                         return await this.readDocuments(ctx, args.assetId, pharmacy.registrationId);
                     }
-                } else if (args.listType === 'patientsAttended') {
-                    let index = pharmacy.patientsAttended.indexOf(args.assetId);
+                } else {
+                    let index = -1;
+                    if (args.listType === 'appointments') {
+                        index = pharmacy.appointments.indexOf(args.assetId);
+                    } else if (args.listType === 'patientsAttended') {
+                        index = pharmacy.patientsAttended.indexOf(args.assetId);
+                    }
                     if (index > -1) {
                         return await this.modifyAssetInfo(ctx, args);
                     } else {
-                        throw new error(`asset not found`);
+                        throw new Error(`asset not found`);
                     }
                 }
-
-            } else {
-                throw new error(`asset with id ${args.assetId} doesn't exist for the pharmacy`);
             }
+
+
+        } else {
+            throw new Error(`asset with id ${args.assetId} doesn't exist for the pharmacy`);
         }
     }
+
 
     /**
      *
@@ -673,8 +715,8 @@ class EhrContract extends Contract {
      * @returns {Promise<any>}
      */
     async readPatientAssets(ctx, args) {
-        args = await JSON.parse(args);
-        let patientExists = await this.assetExists(args.patientId);
+        args = JSON.parse(args);
+        let patientExists = await this.assetExists(ctx, args.patientId);
         if (patientExists) {
             let patientAsBytes = await ctx.stub.getState(args.patientId);
             let patient = JSON.parse(patientAsBytes);
@@ -704,11 +746,11 @@ class EhrContract extends Contract {
                 if (index > -1) {
                     return await this.modifyAssetInfo(ctx, args);
                 } else {
-                    throw new error(`asset not found`);
+                    throw new Error(`asset not found`);
                 }
             }
         } else {
-            throw new error(`patient with ide ${args.patientId} doesn't exist`);
+            throw new Error(`patient with ide ${args.patientId} doesn't exist`);
         }
     }
 
@@ -732,17 +774,22 @@ class EhrContract extends Contract {
                     if (index > -1) {
                         return await this.readDocuments(ctx, args.assetId, laboratory.registrationId);
                     }
-                } else if (args.listType === 'patientsAttended') {
-                    let index = laboratory.patientsAttended.indexOf(args.assetId);
+                } else {
+                    let index = -1;
+                    if (args.listType === 'appointments') {
+                        index = laboratory.appointments.indexOf(args.assetId);
+                    } else if (args.listType === 'patientsAttended') {
+                        index = laboratory.patientsAttended.indexOf(args.assetId);
+                    }
                     if (index > -1) {
                         return await this.modifyAssetInfo(ctx, args);
                     } else {
-                        throw new error(`asset not found`);
+                        throw new Error(`asset not found`);
                     }
                 }
 
             } else {
-                throw new error(`asset with id ${args.assetId} doesn't exist for the laboratory`);
+                throw new Error(`asset with id ${args.assetId} doesn't exist for the laboratory`);
             }
         }
     }
@@ -765,10 +812,10 @@ class EhrContract extends Contract {
                 if (index > -1) {
                     return await this.readDocuments(ctx, args.assetId, researcher.registrationId);
                 } else {
-                    throw new error(`asset not found`);
+                    throw new Error(`asset not found`);
                 }
             } else {
-                throw new error(`asset ${args.assetId} doesn't exits`);
+                throw new Error(`asset ${args.assetId} doesn't exits`);
             }
         }
     }
@@ -791,10 +838,10 @@ class EhrContract extends Contract {
                 if (index > -1) {
                     return await this.readDocuments(ctx, args.assetId, insurer.registrationId);
                 } else {
-                    throw new error(`asset not found`);
+                    throw new Error(`asset not found`);
                 }
             } else {
-                throw new error(`asset ${args.assetId} doesn't exits`);
+                throw new Error(`asset ${args.assetId} doesn't exits`);
             }
         }
     }
@@ -806,11 +853,19 @@ class EhrContract extends Contract {
      * @returns {Promise<[]>}
      */
     async readDocuments(ctx, assetId, requesterId) {
-        let patientAsBytes = await ctx.stub.getState(args.assetId);
+        let patientAsBytes = await ctx.stub.getState(assetId);
         let patient = JSON.parse(patientAsBytes);
         let documentIds = patient.permissionedIds[requesterId];
         let assets = [];
         //push the patient info first and then the documents along with that
+        delete patient.password;
+        delete patient.appointments;
+        delete patient.permissionedIds;
+        delete patient.requesters;
+        delete patient.ehrs;
+        delete patient.bills;
+        delete patient.labRecords;
+        delete patient.medicineReceipts;
         assets.push(patient);
         for (let i = 0; i < documentIds.length; i++) {
             let documentAsBytes = await ctx.stub.getState(documentIds[i]);
@@ -827,14 +882,16 @@ class EhrContract extends Contract {
      * @returns {Promise<any>}
      */
     async getModifiedAsset(ctx, args) {
-        let assetExists = await this.assetExists(args.id);
+
+        args = JSON.parse(args);
+        let assetExists = await this.assetExists(ctx, args.id);
         if (assetExists) {
             let assetAsBytes = await ctx.stub.getState(args.id);
             let asset = JSON.parse(assetAsBytes);
             delete asset.password;
             return asset;
         } else {
-            throw new error(`the asset with id ${id} doesn't exist`);
+            throw new Error(`the asset with id ${args.id} doesn't exist`);
         }
     }
 
@@ -846,13 +903,13 @@ class EhrContract extends Contract {
      */
     async verifyPassword(ctx, args) {
         args = await JSON.parse(args);
-        let assetExists = await this.assetExists(args.id);
+        let assetExists = await this.assetExists(ctx, args.id);
         if (assetExists) {
             let assetAsBytes = await ctx.stub.getState(args.id);
             let asset = JSON.parse(assetAsBytes);
             return asset.password === args.password;
         } else {
-            throw new error(`the id ${args.id} doesn't exist`);
+            throw new Error(`the id ${args.id} doesn't exist`);
         }
     }
 
@@ -962,7 +1019,7 @@ class EhrContract extends Contract {
             let patients = [];
 
             //create a new insurer and update that in the world state
-            let newInsurer = await new Insurance(args.name, args.userName, args.password, args.address, args.registrationId);
+            let newInsurer = await new Insurance(args.name, args.registrationId, args.userName, args.password, args.address);
             newInsurer.patients = patients;
 
             await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
@@ -989,7 +1046,9 @@ class EhrContract extends Contract {
             //create a laboratory and update that in the world state
             let patients = [];
             let patientsAttended = [];
+            let appointments = [];
             let newLaboratory = await new Laboratory(args.userName, args.password, args.hospitalId, args.registrationId);
+            newLaboratory.appointments = appointments;
             newLaboratory.patients = patients;
             newLaboratory.patientsAttended = patientsAttended;
 
@@ -1000,6 +1059,7 @@ class EhrContract extends Contract {
             let hospital = JSON.parse(hospitalAsBytes);
             let laboratories = hospital.laboratories;
             laboratories.push(newLaboratory.registrationId);
+            hospital.laboratories = laboratories;
             await ctx.stub.putState(args.hospitalId, Buffer.from(JSON.stringify(hospital)));
 
             let response = `the laboratory with id ${newLaboratory.registrationId} has been updated in the world state`;
@@ -1022,7 +1082,7 @@ class EhrContract extends Contract {
             let patients = [];
 
             //create a new Researcher and update that in the world state
-            let newResearcher = await new Researcher(args.name, args.userName, args.password, args.address, args.registrationId);
+            let newResearcher = await new Researcher(args.name, args.registrationId, args.userName, args.password, args.address);
             newResearcher.patients = patients;
 
             await ctx.stub.putState(newResearcher.registrationId, Buffer.from(JSON.stringify(newResearcher)));
@@ -1047,8 +1107,11 @@ class EhrContract extends Contract {
         if (hospitalExists && !pharmacyExists) {
             let patients = [];
             let patientsAttended = [];
+            let appointments = [];
             let newPharmacy = await new Pharmacy(args.userName, args.password, args.hospitalId, args.registrationId);
+
             newPharmacy.patients = patients;
+            newPharmacy.appointments = appointments;
             newPharmacy.patientsAttended = patientsAttended;
 
             await ctx.stub.putState(newPharmacy.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
@@ -1058,6 +1121,7 @@ class EhrContract extends Contract {
             let hospital = JSON.parse(hospitalAsBytes);
             let pharmacies = hospital.pharmacies;
             pharmacies.push(newPharmacy.registrationId);
+            hospital.pharmacies = pharmacies;
             await ctx.stub.putState(args.hospitalId, Buffer.from(JSON.stringify(hospital)));
 
             let response = `the pharmacy with id ${newPharmacy.registrationId} has been updated in the world state`;
@@ -1091,6 +1155,14 @@ class EhrContract extends Contract {
             newDoctor.patients = patients;
             newDoctor.appointments = appointments;
             newDoctor.patientsAttended = patientsAttended;
+
+            //update the doctor in the hospital database
+            let hospitalAsBytes = await ctx.stub.getState(args.hospitalId);
+            let hospital = JSON.parse(hospitalAsBytes);
+            let doctors = hospital.doctors;
+            doctors.push(newDoctor.medicalRegistrationNo);
+            hospital.doctors = doctors;
+            await ctx.stub.putState(hospital.registrationId, Buffer.from(JSON.stringify(hospital)));
 
             //put the doctor in the global state
             await ctx.stub.putState(newDoctor.medicalRegistrationNo, Buffer.from(JSON.stringify(newDoctor)));
@@ -1168,12 +1240,15 @@ class EhrContract extends Contract {
 
             //update the appointment in the hospital global state
             let appointments = hospital.appointments;
+            hospital.patients.push(args.patientId);
             appointments.push(newAppointment.appointmentId);
+            hospital.appointments = appointments;
             await ctx.stub.putState(hospital.registrationId, Buffer.from(JSON.stringify(hospital)));
 
             //update the appointment in the patient global state
             appointments = patient.appointments;
             appointments.push(newAppointment.appointmentId);
+            patient.appointments = appointments;
             await ctx.stub.putState(patient.userName, Buffer.from(JSON.stringify(patient)));
 
             await ctx.stub.putState(newAppointment.appointmentId, Buffer.from(JSON.stringify(newAppointment)));
@@ -1211,14 +1286,17 @@ class EhrContract extends Contract {
             //update the patient and the appointment ids in the doctor's global state
             let appointments = doctor.appointments;
             appointments.push(appointment.appointmentId);
+            doctor.appointments = appointments;
+
             let patients = doctor.patients;
             patients.push(appointment.patientId);
+            doctor.patients = patients;
 
             await ctx.stub.putState(doctor.medicalRegistrationNo, Buffer.from(JSON.stringify(doctor)));
 
             //update the appointment with the doctor id and update global state
             appointment.doctorId = doctor.medicalRegistrationNo;
-            ctx.stub.putState(appointment.appointmentId, Buffer.from(JSON.stringify(appointment)));
+            await ctx.stub.putState(appointment.appointmentId, Buffer.from(JSON.stringify(appointment)));
 
             appointments = hospital.appointments;
 
@@ -1380,7 +1458,18 @@ class EhrContract extends Contract {
         }
     }
 
+    async readMyAsset(ctx, args) {
+        args = JSON.parse(args);
+        let assetExists = await this.assetExists(ctx, args.id);
+        if (assetExists) {
+            let response = await ctx.stub.getState(args.id);
+            response = JSON.parse(response);
+            return response;
+        } else {
+            throw new Error(`No such asset with id ${args.id}`);
+        }
+    }
+
 }
 
-module
-    .exports = EhrContract;
+module.exports = EhrContract;

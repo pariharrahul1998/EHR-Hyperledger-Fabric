@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
         // Disconnect from the gateway.
         await gateway.disconnect();
 
-        return response;
+        res.send("Correct");
     } catch (error) {
         console.error(`Failed to revoke access for the patient ${req.body.patientId}: ${error}`);
         res.send("Failed to revoke access");

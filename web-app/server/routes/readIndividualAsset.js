@@ -6,7 +6,7 @@ const path = require('path');
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
 
-router.post('/', async (req, res) => {
+router.get('/', async (req, res) => {
 
     try {
         const walletPath = path.join(process.cwd(), '../wallet');
@@ -72,14 +72,13 @@ router.post('/', async (req, res) => {
             req.body.insurerId = req.body.registrationId;
             response = await contract.submitTransaction('readInsurerAssets', JSON.stringify(req.body));
         }
-        response = JSON.stringify(response.toString());
-        console.log(response);
+
+        console.log(JSON.stringify(response.toString()));
 
         // Disconnect from the gateway.
         await gateway.disconnect();
 
-        return response;
-
+        res.send(response);
 
     } catch (error) {
         console.error(`Failed to fetch asset the user : ${error}`);

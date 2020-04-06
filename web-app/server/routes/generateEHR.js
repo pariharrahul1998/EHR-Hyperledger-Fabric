@@ -35,8 +35,7 @@ router.post('/', async (req, res) => {
         // Disconnect from the gateway.
         await gateway.disconnect();
 
-        return response;
-
+        res.send("Correct");
 
     } catch (error) {
         console.error(`Failed to generate EHR by doctor ${req.body.userName}: ${error}`);

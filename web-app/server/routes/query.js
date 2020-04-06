@@ -1,7 +1,5 @@
 // noinspection BadExpressionStatementJS
 'use-strict';
-const args = require('yargs').argv;
-
 const {FileSystemWallet, Gateway, X509WalletMixin} = require('fabric-network');
 const path = require('path');
 
@@ -11,7 +9,6 @@ async function main() {
 
     try {
 
-        console.log("The entered registrationIds will be quered from the ledger");
         const walletPath = path.join(process.cwd(), '../../wallet');
         const wallet = new FileSystemWallet(walletPath);
         console.log(`************** Wallet path: ${walletPath} **************************`);
@@ -33,18 +30,22 @@ async function main() {
         const network = await gateway.getNetwork('mychannel');
 
         // Get the contract from the network.
-        const contract = network.getContract('contract');
-        let response = await contract.evaluateTransaction('readMyAsset', 'warangal');
+
+        const contract = network.getContract('EHR');
+        let asset = {};
+        asset.id = "testingHospital1";
+        asset.assetId = "pariharrahul2002";
+        asset = JSON.stringify(asset);
+        let response = await contract.evaluateTransaction('getModifiedAsset', asset);
         response = JSON.parse(response.toString());
         console.log(response);
 
         console.log(Date.parse(response.startDate) + "   " + Date.now());
-        
 
         gateway.disconnect();
 
     } catch (error) {
-        console.error(`Failed to delete voter ${error}`);
+        console.error(`Failed to fetch data ${error}`);
         process.exit(1);
     }
 }
