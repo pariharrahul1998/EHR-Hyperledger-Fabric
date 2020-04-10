@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {FileSystemWallet, Gateway, X509WalletMixin} = require('fabric-network');
 const path = require('path');
+var handler = require('./sessionKeyHandler');
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
 let id;
@@ -10,6 +11,7 @@ let id;
 router.get('/', async (req, res) => {
 
     try {
+
         const walletPath = path.join(process.cwd(), '../wallet');
         const wallet = new FileSystemWallet(walletPath);
 
@@ -39,20 +41,25 @@ router.get('/', async (req, res) => {
             req.body.id = req.body.registrationId;
         }
 
-        // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
+        let sessionKeyExists = await handler.verifySessionKey(req.body.id, req.body.sessionKey);
+        if (!sessionKeyExists) {
+            res.send("Incorrect");
+        } else {
+            // Get the network (channel) our contract is deployed to.
+            const network = await gateway.getNetwork('mychannel');
 
-        // Get the contract from the network.
-        const contract = network.getContract('EHR');
+            // Get the contract from the network.
+            const contract = network.getContract('EHR');
 
-        // Submit the specified transaction.
-        let response = await contract.submitTransaction('getModifiedAsset', JSON.stringify(req.body));
+            // Submit the specified transaction.
+            let response = await contract.submitTransaction('getModifiedAsset', JSON.stringify(req.body));
 
-        console.log(JSON.stringify(response.toString()));
+            console.log(JSON.stringify(response.toString()));
 
-        // Disconnect from the gateway.
-        await gateway.disconnect();
-        res.send(response);
+            // Disconnect from the gateway.
+            await gateway.disconnect();
+            res.send(response);
+        }
 
     } catch (error) {
         console.error(`Failed to fetch asset  the user : ${error}`);

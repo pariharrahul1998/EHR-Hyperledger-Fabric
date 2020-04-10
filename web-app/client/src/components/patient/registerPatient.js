@@ -1,6 +1,11 @@
 import React, {Component} from 'react'
 import axios from 'axios';
 import {Redirect} from 'react-router-dom';
+import {ADDRESS} from "../constants";
+import {
+    Button, Container, Divider, Grid, GridColumn, GridRow, Header, Icon,
+    Image, List, Menu, Segment, Input
+} from 'semantic-ui-react';
 
 class registerPatient extends Component {
     constructor(props) {
@@ -79,7 +84,7 @@ class registerPatient extends Component {
             return;
         }
 
-        let response = await axios.post(`http://172.30.143.206:4000/registerVoter`, this.state);
+        let response = await axios.post(ADDRESS+`registerVoter`, this.state);
         if (response.data === 'Correct') {
             alert("Voter Successfully Registered");
             this.setState({

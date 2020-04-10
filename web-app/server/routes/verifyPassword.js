@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {FileSystemWallet, Gateway, X509WalletMixin} = require('fabric-network');
 const path = require('path');
+var handler = require('./sessionKeyHandler');
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
 
@@ -29,14 +30,25 @@ router.post('/', async (req, res) => {
 
         // Submit the specified transaction.
         let response = await contract.submitTransaction('verifyPassword', JSON.stringify(req.body));
-        response = JSON.stringify(response.toString());
+        response = JSON.parse(response.toString());
         console.log(response);
 
         // Disconnect from the gateway.
         await gateway.disconnect();
 
-        return response;
-
+        if (response === true) {
+            let sessionKey = await handler.generateSessionKey(req.body.id);
+            console.log(sessionKey);
+            let response = {
+                "Correct": sessionKey
+            };
+            res.send(JSON.stringify(response));
+        } else {
+            let response = {
+                "inCorrect": false
+            };
+            res.send(JSON.stringify(response));
+        }
 
     } catch (error) {
         console.error(`Failed to verify password for the user ${req.body.id}: ${error}`);

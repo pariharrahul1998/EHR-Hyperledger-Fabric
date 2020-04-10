@@ -2,6 +2,7 @@
 'use-strict';
 const {FileSystemWallet, Gateway, X509WalletMixin} = require('fabric-network');
 const path = require('path');
+var handler = require('./sessionKeyHandler');
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
 
@@ -33,16 +34,23 @@ async function main() {
 
         const contract = network.getContract('EHR');
         let asset = {};
-        asset.id = "testingHospital1";
-        asset.assetId = "pariharrahul2002";
-        asset = JSON.stringify(asset);
-        let response = await contract.evaluateTransaction('getModifiedAsset', asset);
+        //asset.id = "testingHospital1";
+        asset.password = "password";
+        asset.id = "testingHospital";
+        let response = await contract.evaluateTransaction('verifyPassword', JSON.stringify(asset));
         response = JSON.parse(response.toString());
+        if (response === true) {
+            console.log('iasdfk');
+        }
         console.log(response);
-
-        console.log(Date.parse(response.startDate) + "   " + Date.now());
-
         gateway.disconnect();
+        //
+        // let sessionKey = await handler.generateSessionKey(asset.id);
+        // console.log(sessionKey);
+        // response = await handler.verifySessionKey(asset.id, sessionKey);
+        // console.log(response);
+        // await handler.removeSessionKey(asset.id, sessionKey);
+
 
     } catch (error) {
         console.error(`Failed to fetch data ${error}`);
