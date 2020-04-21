@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to generate the lab record for the patient  ${req.body.patientId}: ${error}`);
         res.send("Failed to generate lab record ");
-        process.exit(1);
     }
 });
 

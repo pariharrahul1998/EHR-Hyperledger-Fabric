@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to update asset  for the user ${req.body.id}: ${error}`);
         res.send("Failed to update asset ");
-        process.exit(1);
     }
 });
 

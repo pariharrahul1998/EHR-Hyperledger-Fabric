@@ -48,11 +48,12 @@ class EhrContract extends Contract {
         patient1.bloodGroup = 'AB+';
         patient1.userName = 'pariharrahul2002';
         patient1.password = '12345';
+        patient1.phone = '12345';
 
 
         // let response = await this.createPatient(ctx, JSON.stringify(patient1));
         // console.log(response);
-        let newPatient = await new Patient(patient1.firstName, patient1.lastName, patient1.address, patient1.aadhaar, patient1.DOB, patient1.gender, patient1.bloodGroup, patient1.userName, patient1.password);
+        let newPatient = await new Patient(patient1.firstName, patient1.lastName, patient1.address, patient1.aadhaar, patient1.DOB, patient1.gender, patient1.bloodGroup, patient1.userName, patient1.password, patient1.phone);
         await ctx.stub.putState(newPatient.userName, Buffer.from(JSON.stringify(newPatient)));
         console.log(newPatient);
 
@@ -63,10 +64,10 @@ class EhrContract extends Contract {
         hospital.password = 'password';
         hospital.address = 'address';
         hospital.registrationId = 'registrationId';
-
+        hospital.phone = '1234';
         // response = await this.createHospital(ctx, JSON.stringify(hospital));
         // console.log(response);
-        let newHospital = await new Hospital(hospital.name, hospital.registrationId, hospital.userName, hospital.password, hospital.address);
+        let newHospital = await new Hospital(hospital.name, hospital.registrationId, hospital.userName, hospital.password, hospital.address, hospital.phone);
         await ctx.stub.putState(newHospital.registrationId, Buffer.from(JSON.stringify(newHospital)));
         console.log(newHospital);
 
@@ -84,10 +85,10 @@ class EhrContract extends Contract {
         doctor.type = 'Doctor';
         doctor.hospitalId = 'registrationId';
         doctor.specialisation = 'gynec';
-
+        doctor.phone = '1234';
         // response = await this.createDoctor(ctx, JSON.stringify(doctor));
         // console.log(response);
-        let newDoctor = await new Doctor(doctor.firstName, doctor.lastName, doctor.address, doctor.aadhaar, doctor.medicalRegistrationNo, doctor.DOB, doctor.gender, doctor.userName, doctor.password, doctor.specialisation);
+        let newDoctor = await new Doctor(doctor.firstName, doctor.lastName, doctor.address, doctor.aadhaar, doctor.medicalRegistrationNo, doctor.DOB, doctor.gender, doctor.userName, doctor.password, doctor.specialisation, doctor.phone);
         await ctx.stub.putState(newDoctor.medicalRegistrationNo, Buffer.from(JSON.stringify(newDoctor)));
         console.log(newDoctor);
 
@@ -138,10 +139,10 @@ class EhrContract extends Contract {
         pharmacy.registrationId = 'registrationIdPharmacy';
         pharmacy.userName = 'userNamePharmacy';
         pharmacy.password = 'passwordPharmacy';
-
+        pharmacy.phone = 'phone';
         // response = await this.createPharmacy(ctx, JSON.stringify(pharmacy));
         // console.log(response);
-        let newPharmacy = await new Pharmacy(pharmacy.userName, pharmacy.password, pharmacy.hospitalId, pharmacy.registrationId);
+        let newPharmacy = await new Pharmacy(pharmacy.userName, pharmacy.password, pharmacy.hospitalId, pharmacy.registrationId, pharmacy.phone);
         await ctx.stub.putState(newPharmacy.registrationId, Buffer.from(JSON.stringify(newPharmacy)));
         console.log(newPharmacy);
 
@@ -167,10 +168,10 @@ class EhrContract extends Contract {
         laboratory.registrationId = 'registrationIdLaboratory';
         laboratory.userName = 'userNameLaboratory';
         laboratory.password = 'passwordLaboratory';
-
+        laboratory.phone = '1234';
         // response = await this.createLaboratory(ctx, JSON.stringify(laboratory));
         // console.log(response);
-        let newLaboratory = await new Laboratory(laboratory.userName, laboratory.password, laboratory.hospitalId, laboratory.registrationId);
+        let newLaboratory = await new Laboratory(laboratory.userName, laboratory.password, laboratory.hospitalId, laboratory.registrationId, laboratory.phone);
         await ctx.stub.putState(newLaboratory.registrationId, Buffer.from(JSON.stringify(newLaboratory)));
         console.log(newLaboratory);
 
@@ -197,10 +198,11 @@ class EhrContract extends Contract {
         researcher.password = 'passwordResearcher';
         researcher.address = 'addressResearcher';
         researcher.registrationId = 'registrationIdResearcher';
+        researcher.phone = 'phone';
 
         // response = await this.createResearcher(ctx, JSON.stringify(researcher));
         // console.log(response);
-        let newResearcher = await new Researcher(researcher.name, researcher.registrationId, researcher.userName, researcher.password, researcher.address);
+        let newResearcher = await new Researcher(researcher.name, researcher.registrationId, researcher.userName, researcher.password, researcher.address, researcher.phone);
         await ctx.stub.putState(newResearcher.registrationId, Buffer.from(JSON.stringify(newResearcher)));
         console.log(newResearcher);
 
@@ -211,10 +213,10 @@ class EhrContract extends Contract {
         insurer.password = 'passwordInsurer';
         insurer.address = 'addressInsurer';
         insurer.registrationId = 'registrationIdInsurer';
-
+        insurer.phone = '1234';
         // response = await this.createInsurance(ctx, JSON.stringify(insurer));
         // console.log(insurer);
-        let newInsurer = await new Insurance(insurer.name, insurer.registrationId, insurer.userName, insurer.password, insurer.address);
+        let newInsurer = await new Insurance(insurer.name, insurer.registrationId, insurer.userName, insurer.password, insurer.address, insurer.phone);
         await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
         console.log(newInsurer);
 
@@ -942,7 +944,7 @@ class EhrContract extends Contract {
             let pharmacies = [];
 
             //create a new hospital
-            let newHospital = await new Hospital(args.name, args.registrationId, args.userName, args.password, args.address);
+            let newHospital = await new Hospital(args.name, args.registrationId, args.userName, args.password, args.address, args.phone);
 
             newHospital.doctors = doctors;
             newHospital.appointments = appointments;
@@ -1019,7 +1021,7 @@ class EhrContract extends Contract {
             let patients = [];
 
             //create a new insurer and update that in the world state
-            let newInsurer = await new Insurance(args.name, args.registrationId, args.userName, args.password, args.address);
+            let newInsurer = await new Insurance(args.name, args.registrationId, args.userName, args.password, args.address, args.phone);
             newInsurer.patients = patients;
 
             await ctx.stub.putState(newInsurer.registrationId, Buffer.from(JSON.stringify(newInsurer)));
@@ -1047,7 +1049,7 @@ class EhrContract extends Contract {
             let patients = [];
             let patientsAttended = [];
             let appointments = [];
-            let newLaboratory = await new Laboratory(args.userName, args.password, args.hospitalId, args.registrationId);
+            let newLaboratory = await new Laboratory(args.userName, args.password, args.hospitalId, args.registrationId, args.phone);
             newLaboratory.appointments = appointments;
             newLaboratory.patients = patients;
             newLaboratory.patientsAttended = patientsAttended;
@@ -1082,7 +1084,7 @@ class EhrContract extends Contract {
             let patients = [];
 
             //create a new Researcher and update that in the world state
-            let newResearcher = await new Researcher(args.name, args.registrationId, args.userName, args.password, args.address);
+            let newResearcher = await new Researcher(args.name, args.registrationId, args.userName, args.password, args.address, args.phone);
             newResearcher.patients = patients;
 
             await ctx.stub.putState(newResearcher.registrationId, Buffer.from(JSON.stringify(newResearcher)));
@@ -1108,7 +1110,7 @@ class EhrContract extends Contract {
             let patients = [];
             let patientsAttended = [];
             let appointments = [];
-            let newPharmacy = await new Pharmacy(args.userName, args.password, args.hospitalId, args.registrationId);
+            let newPharmacy = await new Pharmacy(args.userName, args.password, args.hospitalId, args.registrationId, args.phone);
 
             newPharmacy.patients = patients;
             newPharmacy.appointments = appointments;
@@ -1147,7 +1149,7 @@ class EhrContract extends Contract {
             let appointments = [];
             let patientsAttended = [];
 
-            let newDoctor = await new Doctor(args.firstName, args.lastName, args.address, args.aadhaar, args.medicalRegistrationNo, args.DOB, args.gender, args.userName, args.password, args.specialisation);
+            let newDoctor = await new Doctor(args.firstName, args.lastName, args.address, args.aadhaar, args.medicalRegistrationNo, args.DOB, args.gender, args.userName, args.password, args.specialisation, args.phone);
 
             //assign the doctor a hospital and update the info in the hospital's global state
             newDoctor.currentHospital = args.hospitalId;
@@ -1195,7 +1197,7 @@ class EhrContract extends Contract {
             let medicineReceipts = [];
             let appointments = [];
 
-            let newPatient = await new Patient(args.firstName, args.lastName, args.address, args.aadhaar, args.DOB, args.gender, args.bloodGroup, args.userName, args.password);
+            let newPatient = await new Patient(args.firstName, args.lastName, args.address, args.aadhaar, args.DOB, args.gender, args.bloodGroup, args.userName, args.password, args.phone);
 
             newPatient.permissionedIds = permissionedIds;
             newPatient.emergencyContacts = emergencyContacts;
@@ -1387,6 +1389,7 @@ class EhrContract extends Contract {
      * @returns {Promise<string>}
      */
     async queryWithObjectType(ctx, objectType) {
+
         let queryString = {
             selector: {
                 type: objectType

@@ -29,6 +29,7 @@ var requestAccess = require('./routes/requestAccess');
 var revokeAccess = require('./routes/revokeAccess');
 var updateAsset = require('./routes/updateAsset');
 var verifyPassword = require('./routes/verifyPassword');
+var getGenericData = require('./routes/getGenericData');
 
 var app = express();
 const cors = require('cors');
@@ -52,6 +53,7 @@ app.use('/generateBill', generateBill);
 app.use('/generateEHR', generateEHR);
 app.use('/generateLabRecord', generateLabRecord);
 app.use('/generateMedicineReceipt', generateMedicineReceipt);
+app.use('/getGenericData', getGenericData);
 app.use('/grantAccess', grantAccess);
 app.use('/logOut', logOut);
 app.use('/readAsset', readAsset);

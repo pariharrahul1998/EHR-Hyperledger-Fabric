@@ -46,7 +46,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to add contact  for the patient ${req.body.patientId}: ${error}`);
         res.send("Failed to add contact");
-        process.exit(1);
     }
 });
 

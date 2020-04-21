@@ -9,9 +9,10 @@ class Insurance {
      * @param userName
      * @param password
      * @param address
+     * @param phone
      * @returns {Insurance}
      */
-    constructor(name, registrationId, userName, password, address) {
+    constructor(name, registrationId, userName, password, address, phone) {
 
         if (this.validateRegistrationId(registrationId)) {
             this.name = name;
@@ -19,6 +20,7 @@ class Insurance {
             this.password = password;
             this.address = address;
             this.registrationId = registrationId;
+            this.phone = phone;
             this.type = 'Insurance';
             if (this.__isContract) {
                 delete this.__isContract;

@@ -36,13 +36,24 @@ async function main() {
         let asset = {};
         //asset.id = "testingHospital1";
         asset.password = "password";
-        asset.id = "testingHospital";
-        let response = await contract.evaluateTransaction('verifyPassword', JSON.stringify(asset));
-        response = JSON.parse(response.toString());
-        if (response === true) {
-            console.log('iasdfk');
-        }
-        console.log(response);
+        asset.id = "hiRahul";
+        let response = ["Incorrect"];
+        response = await contract.evaluateTransaction('readMyAsset', JSON.stringify(asset));
+        // var patient = 'Patient';
+        // console.log(typeof patient);
+        // let requestType = 'pariharrahul2002';
+        // if (requestType === 'pariharrahul2002') {
+        //     let queryString = {
+        //         "selector": {
+        //             "userName": requestType
+        //         }
+        //     };
+        //
+        //     response = await contract.evaluateTransaction('queryWithQueryString', JSON.stringify(queryString));
+        //     response = JSON.parse(response.toString());
+        //     console.log(response);
+        // }
+        console.log(JSON.parse(response.toString()));
         gateway.disconnect();
         //
         // let sessionKey = await handler.generateSessionKey(asset.id);

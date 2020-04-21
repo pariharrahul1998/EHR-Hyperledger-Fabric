@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to delete the asset ${req.body.assetId}: ${error}`);
         res.send("Failed to delete asset");
-        process.exit(1);
     }
 });
 

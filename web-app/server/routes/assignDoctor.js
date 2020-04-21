@@ -46,7 +46,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to assign doctor for an assignment by the hospital ${req.body.registrationId}: ${error}`);
         res.send("Failed to assign a doctor");
-        process.exit(1);
     }
 });
 

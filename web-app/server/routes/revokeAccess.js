@@ -46,7 +46,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to revoke access for the patient ${req.body.patientId}: ${error}`);
         res.send("Failed to revoke access");
-        process.exit(1);
     }
 });
 

@@ -17,9 +17,10 @@ class Patient {
      * @param bloodGroup
      * @param userName
      * @param password
+     * @param phone
      * @returns {Patient}
      */
-    constructor(firstName, lastName, address, aadhaar, DOB, gender, bloodGroup, userName, password) {
+    constructor(firstName, lastName, address, aadhaar, DOB, gender, bloodGroup, userName, password, phone) {
         if (this.validateAadhaar(aadhaar)) {
             this.firstName = firstName;
             this.lastName = lastName;
@@ -30,6 +31,7 @@ class Patient {
             this.bloodGroup = bloodGroup;
             this.userName = userName;
             this.password = password;
+            this.phone = phone;
             this.type = 'Patient';
 
             if (this.__isContract) {

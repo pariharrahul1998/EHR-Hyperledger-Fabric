@@ -5,15 +5,13 @@ const {FileSystemWallet, Gateway, X509WalletMixin} = require('fabric-network');
 const path = require('path');
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
-
+const walletPath = path.join(process.cwd(), '../wallet');
+const wallet = new FileSystemWallet(walletPath);
 
 router.post('/', async (req, res) => {
 
     try {
-
         // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), '../wallet');
-        const wallet = new FileSystemWallet(walletPath);
         console.log(`************** Wallet path: ${walletPath} **************************`);
 
         // Check to see if we've already enrolled the user
@@ -60,19 +58,12 @@ router.post('/', async (req, res) => {
         let response = await registerInLedger(req);
 
         console.log(response.length + " hey");
-
-        if (response.length === 73) {
-            const enrollment = await ca.revoke({enrollmentID: req.body.userName}, adminIdentity);
-            await wallet.delete(req.body.userName);
-            res.send(response);
-        } else {
-            res.send("Correct");
-        }
+        res.send("Correct");
 
     } catch (error) {
+        await wallet.delete(req.body.userName);
         console.error(`Failed to register user ${req.body.userName}: ${error}`);
         res.send("Failed to register candidate");
-        process.exit(1);
     }
 });
 
@@ -108,7 +99,6 @@ async function registerInLedger(req) {
 
     } catch (error) {
         console.log(` ... Failed to submit Transaction to the ledger ${error} ... `);
-        process.exit(1);
     }
 }
 

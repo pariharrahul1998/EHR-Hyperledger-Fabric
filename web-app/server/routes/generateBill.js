@@ -46,7 +46,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to generate bill for the user ${req.body.patientId}: ${error}`);
         res.send("Failed to generate bill");
-        process.exit(1);
     }
 });
 

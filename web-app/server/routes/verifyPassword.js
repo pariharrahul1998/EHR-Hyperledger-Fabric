@@ -40,20 +40,22 @@ router.post('/', async (req, res) => {
             let sessionKey = await handler.generateSessionKey(req.body.id);
             console.log(sessionKey);
             let response = {
-                "Correct": sessionKey
+                "data": sessionKey
             };
-            res.send(JSON.stringify(response));
+            res.send(response);
         } else {
             let response = {
-                "inCorrect": false
+                "data": "Incorrect"
             };
-            res.send(JSON.stringify(response));
+            res.send(response);
         }
 
     } catch (error) {
         console.error(`Failed to verify password for the user ${req.body.id}: ${error}`);
-        res.send("Failed to verify password");
-        process.exit(1);
+        let response = {
+            "data": "Failed to verify password"
+        };
+        res.send(response);
     }
 });
 

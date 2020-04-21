@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to request for documents for patient ${req.body.patientId}: ${error}`);
         res.send("Failed to request for access");
-        process.exit(1);
     }
 });
 

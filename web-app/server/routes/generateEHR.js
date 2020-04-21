@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to generate EHR by doctor ${req.body.userName}: ${error}`);
         res.send("Failed to generate an EHR");
-        process.exit(1);
     }
 });
 

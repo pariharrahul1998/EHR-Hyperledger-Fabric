@@ -46,7 +46,6 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to generate medicineReceipt for patient ${req.body.patientId}: ${error}`);
         res.send("Failed to generate medicine receipt");
-        process.exit(1);
     }
 });
 

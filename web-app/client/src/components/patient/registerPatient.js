@@ -17,6 +17,8 @@ import Box from "@material-ui/core/Box";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import copyright from '../copyright';
 import MenuItem from "@material-ui/core/MenuItem";
+import {validateForm} from "../validateForm";
+import PopUp from "../PopUp";
 
 const theme = createMuiTheme();
 
@@ -30,6 +32,7 @@ const paper = {
     flexDirection: 'column',
     alignItems: 'center',
 };
+
 const form = {
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing(3),
@@ -54,7 +57,11 @@ class registerPatient extends Component {
             phone: '',
             type: 'Patient',
             SMSUpdates: false,
-            isRegistered: false
+            isRegistered: false,
+            errors: {},
+            alertShow: false,
+            alertData: '',
+            alertHeading: ''
         }
 
     }
@@ -64,37 +71,86 @@ class registerPatient extends Component {
             [event.target.name]: event.target.value
         });
     };
-    submitForm = async (event) => {
-
+    handleCheckBox = event =>{
         this.setState({
-            spinner: true
+            [event.target.name]: event.target.checked
         });
-        const patientDetails = {
-            userName: this.state.userName,
-            password: this.state.password
-        };
-        let response = await axios.post(ADDRESS + `registerPatient`, patientDetails);
-        if (typeof response.data === "object") {
-            localStorage.setItem("token", this.state.userName);
-            this.setState({
-                loggedIn: true,
-            });
-        } else {
-            this.setState({
-                spinner: false,
-                alertShow: true,
-                alertType: "danger",
-                alertData: response.data,
-            });
+    };
+
+    removeNonNecessaryErrors = (event) => {
+        delete this.state.errors.medicalRegistrationNo;
+        delete this.state.errors.specialisation;
+        delete this.state.errors.registrationId;
+        delete this.state.errors.name;
+        delete this.state.errors.hospitalId;
+    };
+    submitForm = async (event) => {
+        event.preventDefault();
+        let errors = validateForm(this.state);
+        console.log(!errors["userName"]);
+        if (!errors["userName"]) {
+            let isUserNameTaken = localStorage.getItem(this.state.userName);
+            console.log(isUserNameTaken);
+            if (isUserNameTaken !== null) {
+                errors["userName"] = "*userName already taken";
+            }
+        }
+        if (!errors["aadhaar"]) {
+            let isAadhaarTaken = localStorage.getItem(this.state.aadhaar);
+            console.log(isAadhaarTaken);
+
+            if (isAadhaarTaken !== null) {
+                errors["aadhaar"] = "*aadhaar already in use";
+            }
+        }
+        this.setState({errors: errors});
+        this.state.errors = errors;
+        this.removeNonNecessaryErrors();
+        console.log(this.state.errors);
+        let isInvalid = Object.getOwnPropertyNames(this.state.errors).length;
+        if (!isInvalid) {
+            let response = "";
+            try {
+                response = await axios.post(ADDRESS + `registerPatient`, this.state);
+                response = response.data;
+                console.log(response);
+                if (response === "Correct") {
+                    localStorage.setItem(this.state.userName, "Patient");
+                    localStorage.setItem(this.state.aadhaar, "Patient");
+                    this.setState({isRegistered: true});
+                    console.log(this.state);
+                } else {
+                    this.setState({
+                        alertShow: true,
+                        alertData: response,
+                        alertHeading: "SigUp Error",
+                    });
+                }
+            } catch (e) {
+                this.setState({
+                    alertShow: true,
+                    alertHeading: "Server Error",
+                    alertData: "Can not connect to the server",
+                });
+            }
+
         }
     };
 
     render() {
         if (this.state.isRegistered === true) {
-            return <Redirect to='/'/>
+            console.log(this.state);
+            return <Redirect to='/patientLogin'/>
         } else {
             return (
+
                 <Container component="main" maxWidth="xs">
+                    <PopUp
+                        alertData={this.state.alertData}
+                        alertHeading={this.state.alertHeading}
+                        alertShow={this.state.alertShow}
+                        alertCloseFunc={() => this.setState({alertShow: false})}
+                    />
                     <CssBaseline/>
                     <div style={paper}>
                         <Avatar style={avatar}>
@@ -114,9 +170,10 @@ class registerPatient extends Component {
                                         fullWidth
                                         id="firstName"
                                         label="First Name"
-                                        autoFocus
                                         defaultValue={this.state.firstName}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.firstName}
+                                        autoFocus={true}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
@@ -130,6 +187,7 @@ class registerPatient extends Component {
                                         autoComplete="lname"
                                         defaultValue={this.state.lastName}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.lastName}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
@@ -143,6 +201,7 @@ class registerPatient extends Component {
                                                autoComplete="gender"
                                                defaultValue={this.state.gender}
                                                onChange={this.handleChange}
+                                               helperText={this.state.errors.gender}
                                     >
                                         <MenuItem value="Male">Male</MenuItem>
                                         <MenuItem value="Female">Female</MenuItem>
@@ -157,11 +216,13 @@ class registerPatient extends Component {
                                         id="date"
                                         label="Date of Birth"
                                         type="date"
+                                        name="DOB"
                                         defaultValue={this.state.DOB}
                                         onChange={this.handleChange}
                                         InputLabelProps={{
                                             shrink: true,
                                         }}
+                                        helperText={this.state.errors.DOB}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
@@ -175,6 +236,8 @@ class registerPatient extends Component {
                                         autoComplete="phone"
                                         defaultValue={this.state.phone}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.phone}
+
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
@@ -186,9 +249,9 @@ class registerPatient extends Component {
                                         fullWidth
                                         id="bloodGroup"
                                         label="Blood Group"
-                                        autoFocus
                                         defaultValue={this.state.bloodGroup}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.bloodGroup}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -202,6 +265,7 @@ class registerPatient extends Component {
                                         autoComplete="45454545455"
                                         defaultValue={this.state.aadhaar}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.aadhaar}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -213,8 +277,9 @@ class registerPatient extends Component {
                                         label="Address"
                                         name="address"
                                         autoComplete="India"
-                                        defaultValue={this.state.aadhaar}
+                                        defaultValue={this.state.address}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.address}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -228,6 +293,8 @@ class registerPatient extends Component {
                                         autoComplete="userName"
                                         defaultValue={this.state.userName}
                                         onChange={this.handleChange}
+                                        helperText={this.state.errors.userName}
+
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -241,12 +308,13 @@ class registerPatient extends Component {
                                         id="password"
                                         autoComplete="current-password"
                                         defaultValue={this.state.password}
+                                        helperText={this.state.errors.password}
                                         onChange={this.handleChange}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
                                     <FormControlLabel
-                                        control={<Checkbox value="allowExtraEmails" color="primary"/>}
+                                        control={<Checkbox name="SMSUpdates" defaultValue={this.state.SMSUpdates} checked={this.state.SMSUpdates} onChange={this.handleCheckBox} color="primary"/>}
                                         label="I want to receive information and updates via sms."
                                     />
                                 </Grid>
@@ -273,43 +341,11 @@ class registerPatient extends Component {
                         <copyright.Copyright/>
                     </Box>
                 </Container>
+
             );
         }
 
     }
-
-    handleRegisterPatient = async (event) => {
-
-        event.preventDefault();
-
-        if (validateName(event.target.firstName.value) === false) {
-            alert("First Name of Register Voter is not compatible");
-            return;
-        }
-
-        if (validateName(event.target.lastName.value) === false) {
-            alert("Last Name of Register Voter is not compatible");
-            return;
-        }
-
-        if (validateMobilNo(event.target.aadhaar.value) === false) {
-            alert("Mobile Number is Invalid");
-            return;
-        }
-
-        let response = await axios.post(ADDRESS + `registerVoter`, this.state);
-        if (response.data === 'Correct') {
-            alert("Voter Successfully Registered");
-            this.setState({
-                isRegistered: true
-            });
-        }
-        console.log(response.data);
-    };
-
-    changeStateValues = (event) => {
-        this.setState({[event.target.name]: event.target.value});
-    };
 }
 
 export default registerPatient;

@@ -6,12 +6,11 @@ const path = require('path');
 var handler = require('./sessionKeyHandler');
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
-let id;
 
-router.get('/', async (req, res) => {
+router.post('/', async (req, res) => {
 
     try {
-
+        console.log(req.body);
         const walletPath = path.join(process.cwd(), '../wallet');
         const wallet = new FileSystemWallet(walletPath);
 
@@ -53,9 +52,8 @@ router.get('/', async (req, res) => {
 
             // Submit the specified transaction.
             let response = await contract.submitTransaction('getModifiedAsset', JSON.stringify(req.body));
-
-            console.log(JSON.stringify(response.toString()));
-
+            response = JSON.stringify(response.toString());
+            console.log(response);
             // Disconnect from the gateway.
             await gateway.disconnect();
             res.send(response);
@@ -64,7 +62,6 @@ router.get('/', async (req, res) => {
     } catch (error) {
         console.error(`Failed to fetch asset  the user : ${error}`);
         res.send("Failed to fetch asset");
-        process.exit(1);
     }
 });
 

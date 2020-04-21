@@ -15,10 +15,11 @@ class Doctor {
      * @param userName
      * @param password
      * @param specialisation
+     * @param phone
      * @returns {Doctor}
      */
 
-    constructor(firstName, lastName, address, aadhaar, medicalRegistrationNo, DOB, gender, userName, password, specialisation) {
+    constructor(firstName, lastName, address, aadhaar, medicalRegistrationNo, DOB, gender, userName, password, specialisation, phone) {
         if (this.validateAadhaar(aadhaar) && this.validateMedicalRegistratonNo(medicalRegistrationNo)) {
             this.firstName = firstName;
             this.lastName = lastName;
@@ -30,6 +31,7 @@ class Doctor {
             this.userName = userName;
             this.password = password;
             this.specialisation = specialisation;
+            this.phone = phone;
             this.type = 'Doctor';
 
             if (this.__isContract) {

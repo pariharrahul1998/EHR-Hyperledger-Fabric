@@ -17,7 +17,7 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import Link from "@material-ui/core/Link";
 import Button from '@material-ui/core/Button';
 import copyright from '../copyright';
-// import PopUp from "./VoterPage/PopUp";
+import PopUp from "../PopUp";
 
 const theme = createMuiTheme();
 const image = {
@@ -27,7 +27,6 @@ const image = {
     backgroundSize: 'cover',
     backgroundPosition: 'center',
 };
-
 const root = {
     height: '100vh'
 };
@@ -53,8 +52,9 @@ class patientLogin extends Component {
 
     constructor(props) {
         super(props);
-
-        const token = localStorage.getItem("token");
+        localStorage.removeItem("patientToken");
+        const token = localStorage.getItem("patientToken");
+        console.log(token);
         let loggedIn = true;
         if (token == null) {
             loggedIn = false;
@@ -63,10 +63,12 @@ class patientLogin extends Component {
         this.state = {
             userName: "",
             password: "",
-            alertType: "danger",
             alertData: "",
             alertShow: false,
-            loggedIn
+            alertHeading: '',
+            sessionKey: '',
+            loggedIn,
+            errors: {}
         }
     }
 
@@ -77,36 +79,63 @@ class patientLogin extends Component {
     };
 
     submitForm = async (event) => {
-
-        this.setState({
-            spinner: true
-        });
-        const voterCredentials = {
-            userName: this.state.userName,
-            password: this.state.password
-        };
-        let response = await axios.post(ADDRESS + `verifyPassword`, voterCredentials);
-        if (typeof response.data === "object") {
-            localStorage.setItem("token", this.state.userName);
-            this.setState({
-                loggedIn: true,
-            });
-        } else {
-            this.setState({
-                spinner: false,
-                alertShow: true,
-                alertType: "danger",
-                alertData: response.data,
-            });
+        event.preventDefault();
+        let errors = {};
+        if (!this.state.userName) {
+            errors["userName"] = "*Please Enter the userName";
         }
+        if (!this.state.password) {
+            errors["password"] = "*Please Enter the password";
+        }
+        this.setState({errors: errors});
+        this.state.errors = errors;
+        let isInvalid = Object.getOwnPropertyNames(this.state.errors).length;
+        if (!isInvalid) {
+            const patientCredentials = {
+                id: this.state.userName,
+                password: this.state.password
+            };
+            let response = "";
+            try {
+                response = await axios.post(ADDRESS + `verifyPassword`, patientCredentials);
+                response = response.data;
+                console.log(response);
+                if (response.data !== "Incorrect" && response.data !== "Failed to verify password") {
+                    let patientToken = {
+                        userName: this.state.userName,
+                        sessionKey: response.data
+                    };
+                    localStorage.setItem("patientToken", JSON.stringify(patientToken));
+                    this.setState({
+                        loggedIn: true,
+                        sessionKey: response.data
+                    });
+                } else {
+                    this.setState({
+                        alertShow: true,
+                        alertHeading: "SigIn Error",
+                        alertData: response.data,
+                    });
+                }
+            } catch (e) {
+                this.setState({
+                    alertShow: true,
+                    alertHeading: "Server Error",
+                    alertData: "Can not connect to the server",
+                });
+            }
+
+
+        }
+        console.log(this.state);
     };
 
     render() {
-        if (this.state.loggedIn === true) {
-            return <Redirect to={{
-                pathname: '/voterPage',
-            }}/>;
-        }
+        // if (this.state.loggedIn === true) {
+        //     return <Redirect to={{
+        //         pathname: '/patientDashBoard',
+        //     }}/>;
+        // }
         if (this.state.spinner) {
             return <Spinner animation="border"/>;
         } else {
@@ -114,6 +143,12 @@ class patientLogin extends Component {
             return (
 
                 <Grid container component="main" style={root}>
+                    <PopUp
+                        alertData={this.state.alertData}
+                        alertHeading={this.state.alertHeading}
+                        alertShow={this.state.alertShow}
+                        alertCloseFunc={() => this.setState({alertShow: false})}
+                    />
                     <CssBaseline/>
                     <Grid item xs={false} sm={4} md={7} style={image}/>
 
@@ -134,10 +169,11 @@ class patientLogin extends Component {
                                     id="userName"
                                     label="UserName"
                                     name="userName"
-                                    autoComplete="email"
+                                    autoComplete="userName"
                                     autoFocus
                                     defaultValue={this.state.userName}
                                     onChange={this.handleChange}
+                                    helperText={this.state.errors.userName}
                                 />
                                 <TextField
                                     variant="outlined"
@@ -151,6 +187,7 @@ class patientLogin extends Component {
                                     autoComplete="current-password"
                                     defaultValue={this.state.password}
                                     onChange={this.handleChange}
+                                    helperText={this.state.errors.password}
                                 />
                                 <FormControlLabel
                                     control={<Checkbox value="remember" color="primary"/>}
