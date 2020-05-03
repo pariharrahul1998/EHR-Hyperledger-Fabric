@@ -42,6 +42,7 @@ const submit = {
 
 
 class registerHospital extends Component {
+
     constructor(props) {
         super(props);
         this.state = {
@@ -105,9 +106,8 @@ class registerHospital extends Component {
                 response = response.data;
                 console.log(response);
                 if (response === "Correct") {
-                    localStorage.setItem(this.state.registrationId, "HospitalId");
-                    localStorage.setItem(this.state.userName, "Hospital");
-                    localStorage.setItem(this.state.aadhaar, "Hospital");
+                    localStorage.setItem(this.state.registrationId, this.state.name);
+                    localStorage.setItem(this.state.userName, this.state.name);
                     this.setState({isRegistered: true});
                     console.log(this.state);
                 } else {

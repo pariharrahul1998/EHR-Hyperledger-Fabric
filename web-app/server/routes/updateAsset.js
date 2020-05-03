@@ -33,6 +33,7 @@ router.post('/', async (req, res) => {
             const contract = network.getContract('EHR');
 
             // Submit the specified transaction.
+            console.log(req.body);
             let response = await contract.submitTransaction('updateAsset', JSON.stringify(req.body));
             response = JSON.stringify(response.toString());
             console.log(response);

@@ -108,6 +108,7 @@ class registerDoctor extends Component {
         let items = [];
         for (let i = 0; i < this.state.hospitals.length; i++) {
             items.push(<MenuItem
+                key={i}
                 value={this.state.hospitals[i]["hospitalId"]}>{this.state.hospitals[i]["hospitalName"] + " " + this.state.hospitals[i]["hospitalId"]}</MenuItem>);
             //here I will be creating my options dynamically based on
             //what props are currently passed to the parent component
@@ -155,9 +156,9 @@ class registerDoctor extends Component {
                 response = response.data;
                 console.log(response);
                 if (response === "Correct") {
-                    localStorage.setItem(this.state.userName, "Doctor");
-                    localStorage.setItem(this.state.aadhaar, "Doctor");
-                    localStorage.setItem(this.state.medicalRegistrationNo, "HospitalId");
+                    localStorage.setItem(this.state.userName, this.state.firstName + ' ' + this.state.lastName);
+                    localStorage.setItem(this.state.aadhaar, this.state.firstName + ' ' + this.state.lastName);
+                    localStorage.setItem(this.state.medicalRegistrationNo, this.state.firstName + ' ' + this.state.lastName);
                     this.setState({isRegistered: true});
                     console.log(this.state);
                 } else {

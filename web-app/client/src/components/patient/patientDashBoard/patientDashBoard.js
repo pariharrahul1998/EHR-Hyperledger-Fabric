@@ -10,27 +10,32 @@ import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
-import Badge from '@material-ui/core/Badge';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Link from '@material-ui/core/Link';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import PersonIcon from '@material-ui/icons/Person';
-import {mainListItems, secondaryListItems} from './listItems';
-import Chart from './Chart';
-import Deposits from './Deposits';
-import Orders from './Orders';
+import PatientPersonalInfo from './patientPersonalInfo';
 import ExitToApp from "@material-ui/icons/ExitToApp";
 import {Redirect} from "react-router-dom";
 import axios from "axios";
 import {ADDRESS} from "../../constants";
 import copyright from '../../copyright';
-
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import DashboardIcon from "@material-ui/icons/Dashboard";
+import ListItemText from "@material-ui/core/ListItemText";
+import PeopleIcon from "@material-ui/icons/People";
+import BarChartIcon from "@material-ui/icons/BarChart";
+import LayersIcon from "@material-ui/icons/Layers";
+import ListSubheader from "@material-ui/core/ListSubheader";
+import AssignmentIcon from "@material-ui/icons/Assignment";
+import {AddIcCallSharp} from "@material-ui/icons";
+import BookHospitalAppointment from "./bookHospitalAppointment";
+import ViewEHRs from "./viewEHRs";
 
 const drawerWidth = 240;
-let data = {};
 const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
@@ -106,17 +111,67 @@ const useStyles = makeStyles((theme) => ({
         flexDirection: 'column',
     },
     fixedHeight: {
-        height: 240,
+        height: '100%',
     },
 }));
+var patientFormat = {
+    DOB: '',
+    aadhaar: '',
+    address: '',
+    appointments: [],
+    bills: [],
+    bloodGroup: '',
+    ehrs: [],
+    emergencyContacts: [],
+    firstName: '',
+    gender: '',
+    labRecords: [],
+    lastName: '',
+    medicineReceipts: [],
+    permissionedIds: {},
+    phone: '',
+    requesters: [],
+    type: 'Patient',
+    userName: '',
+    sessionKey: '',
+};
 
 export default function PatientDashBoard() {
     const classes = useStyles();
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
+    const [patientData, setPatientData] = React.useState(patientFormat);
     const [open, setOpen] = React.useState(true);
     const [logOut, setLogOut] = React.useState(false);
-    const [patientData, setPatientData] = React.useState({});
+    const [patientInfoDisplay, setPatientInfoDisplay] = React.useState(false);
+    const [bookAppointmentDisplay, setBookAppointmentDisplay] = React.useState(false);
+    const [viewEHRsDisplay, setViewEHRsDisplay] = React.useState(false);
+
+    useEffect(() => {
+        const fetchPatientData = async () => {
+            try {
+                let patientCredentials = JSON.parse(localStorage.getItem('patientToken'));
+                if (!patientCredentials) {
+                    setLogOut(true);
+                } else {
+                    patientCredentials.type = "Patient";
+                    console.log(patientCredentials);
+                    let response = await axios.post(ADDRESS + `readAsset`, patientCredentials);
+                    if (response !== null) {
+                        response = response.data;
+                        response = JSON.parse(response);
+                        response.sessionKey = patientCredentials.sessionKey;
+                        console.log(response);
+                        setPatientData(response || {});
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        };
+        fetchPatientData();
+    }, []);
+    console.log(patientData);
 
     const handleLogOut = async () => {
         console.log("herer");
@@ -136,38 +191,150 @@ export default function PatientDashBoard() {
             //handle the error by giving out a error messeage saying the logOUt failed
         }
     };
-    if (logOut) {
-        console.log("Asdds");
-        return <Redirect to={{
-            pathname: '/',
-        }}/>;
-    }
+
     const handleDrawerOpen = () => {
         setOpen(true);
     };
+
     const handleDrawerClose = () => {
         setOpen(false);
     };
 
-    useEffect(() => {
-        const fetchPatientData = async () => {
-            try {
-                let patientCredentials = JSON.parse(localStorage.getItem('patientToken'));
-                patientCredentials.type = "Patient";
-                console.log(patientCredentials);
-                let response = await axios.post(ADDRESS + `readAsset`, patientCredentials);
-                response = JSON.parse(response.data);
-                console.log(response);
-                setPatientData(response);
-            } catch (e) {
-                console.log(e);
+    const visibilityHandlerPatientInfo = () => {
+        var x = document.getElementById("patientInfo");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setPatientInfoDisplay(true);
+            } else {
+                x.style.display = "none";
+                setPatientInfoDisplay(false);
             }
-        };
-        fetchPatientData();
-    }, []);
+        }
+    };
+    const visibilityHandlerBookAppointment = () => {
+        var x = document.getElementById("bookAppointment");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setBookAppointmentDisplay(true);
+            } else {
+                x.style.display = "none";
+                setBookAppointmentDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerViewEHRs = () => {
+        var x = document.getElementById("viewEHRs");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewEHRsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewEHRsDisplay(false);
+            }
+        }
+    };
+
+
+    console.log(patientInfoDisplay);
+    if (patientInfoDisplay) {
+        console.log("here");
+        var patientInfo = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <PatientPersonalInfo data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    }
+
+    if (bookAppointmentDisplay) {
+        var bookAppointment = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <BookHospitalAppointment data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    }
+    if (viewEHRsDisplay) {
+        var viewEHRs = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewEHRs data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    }
+
+    const mainListItems = (
+        <div>
+            <ListItem button onClick={visibilityHandlerPatientInfo}>
+                <ListItemIcon>
+                    <DashboardIcon/>
+                </ListItemIcon>
+                <ListItemText primary="PatientDashBoard"/>
+            </ListItem>
+            <ListItem button onClick={visibilityHandlerBookAppointment}>
+                <ListItemIcon>
+                    <AddIcCallSharp/>
+                </ListItemIcon>
+                <ListItemText primary="Book Appointment"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <PeopleIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Requesters"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <BarChartIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Reports"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <LayersIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Integrations"/>
+            </ListItem>
+        </div>
+    );
+    const secondaryListItems = (
+        <div>
+            <ListSubheader inset>Saved Documents</ListSubheader>
+            <ListItem button onClick={visibilityHandlerViewEHRs}>
+                <ListItemIcon>
+                    <AssignmentIcon/>
+                </ListItemIcon>
+                <ListItemText primary="View EHRs"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <AssignmentIcon/>
+                </ListItemIcon>
+                <ListItemText primary="View Lab Reports"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <AssignmentIcon/>
+                </ListItemIcon>
+                <ListItemText primary="View Medicine Receipt"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <AssignmentIcon/>
+                </ListItemIcon>
+                <ListItemText primary="View Bills"/>
+            </ListItem>
+        </div>
+    );
+
+    if (logOut) {
+        return <Redirect to={{
+            pathname: '/',
+        }}/>;
+    }
 
     return (
-        <div className={classes.root}>
+        <div className={classes.root} id='mainDiv'>
             <CssBaseline/>
             <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
                 <Toolbar className={classes.toolbar}>
@@ -183,7 +350,7 @@ export default function PatientDashBoard() {
                     <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
                         Patient Dashboard
                     </Typography>
-                    <IconButton color="inherit">
+                    <IconButton color="inherit" onClick={visibilityHandlerPatientInfo}>
                         <PersonIcon/>
                     </IconButton>
                     <IconButton color="secondary" onClick={handleLogOut}>
@@ -208,28 +375,23 @@ export default function PatientDashBoard() {
                 <Divider/>
                 <List>{secondaryListItems}</List>
             </Drawer>
+
             <main className={classes.content}>
                 <div className={classes.appBarSpacer}/>
                 <Container maxWidth="lg" className={classes.container}>
-                    <Grid container spacing={3}>
-                        {/* Chart */}
-                        <Grid item xs={12} md={8} lg={9}>
-                            <Paper className={fixedHeightPaper}>
-                                <Chart/>
-                            </Paper>
+
+                    <Grid container spacing={3} justify='center' alignContent='center'>
+                        {/* Recent HospitalPersonalInfo */}
+                        <Grid item xs={12} style={{display: 'none'}} id="patientInfo">
+                            {patientInfo}
                         </Grid>
-                        {/* Recent Deposits */}
-                        <Grid item xs={12} md={4} lg={3}>
-                            <Paper className={fixedHeightPaper}>
-                                <Deposits/>
-                            </Paper>
+                        <Grid item xs={12} style={{display: 'none'}} id="bookAppointment">
+                            {bookAppointment}
                         </Grid>
-                        {/* Recent Orders */}
-                        <Grid item xs={12}>
-                            <Paper className={classes.paper}>
-                                <Orders/>
-                            </Paper>
+                        <Grid item xs={12} id="viewEHRs">
+                            {viewEHRs}
                         </Grid>
+
                     </Grid>
                     <Box pt={4}>
                         <copyright.Copyright/>

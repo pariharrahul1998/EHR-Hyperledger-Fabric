@@ -11,6 +11,7 @@ const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 
 router.post('/', async (req, res) => {
 
     try {
+        console.log(req.body);
         let sessionKeyExists = await handler.verifySessionKey(req.body.userName, req.body.sessionKey);
         if (!sessionKeyExists) {
             res.send("Incorrect");
@@ -33,6 +34,7 @@ router.post('/', async (req, res) => {
             const contract = network.getContract('EHR');
 
             // Submit the specified transaction.
+            console.log(req.body);
             let response = await contract.submitTransaction('createAppointment', JSON.stringify(req.body));
             response = JSON.stringify(response.toString());
             console.log(response);
@@ -45,8 +47,8 @@ router.post('/', async (req, res) => {
 
 
     } catch (error) {
-        console.error(`Failed to verify the password for the user ${req.body.id}: ${error}`);
-        res.send("Failed to verify password");
+        console.error(`Failed to create Appointment for the user  ${req.body.id}: ${error}`);
+        res.send("Failed to create Appointment");
     }
 });
 

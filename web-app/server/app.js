@@ -9,6 +9,7 @@ var addEmergencyContact = require('./routes/addEmergencyContact');
 var assignDoctor = require('./routes/assignDoctor');
 var createAppointment = require('./routes/createAppointment');
 var deleteAsset = require('./routes/deleteAsset');
+var fetchFileFromDatabase = require('./routes/fetchFileFromDatabase');
 var generateBill = require('./routes/generateBill');
 var generateEHR = require('./routes/generateEHR');
 var generateLabRecord = require('./routes/generateLabRecord');
@@ -17,6 +18,7 @@ var grantAccess = require('./routes/grantAccess');
 var logOut = require('./routes/logOut');
 var readAsset = require('./routes/readAsset');
 var readIndividualAsset = require('./routes/readIndividualAsset');
+var readPatientDocuments = require('./routes/readPatientDocuments');
 var registerDoctor = require('./routes/registerDoctor');
 var registerHospital = require('./routes/registerHospital');
 var registerInsurer = require('./routes/registerInsurer');
@@ -30,6 +32,7 @@ var revokeAccess = require('./routes/revokeAccess');
 var updateAsset = require('./routes/updateAsset');
 var verifyPassword = require('./routes/verifyPassword');
 var getGenericData = require('./routes/getGenericData');
+var uploadFile = require('./routes/uploadFile');
 
 var app = express();
 const cors = require('cors');
@@ -49,6 +52,7 @@ app.use('/addEmergencyContact', addEmergencyContact);
 app.use('/assignDoctor', assignDoctor);
 app.use('/createAppointment', createAppointment);
 app.use('/deleteAsset', deleteAsset);
+app.use('/fetchFileFromDatabase', fetchFileFromDatabase);
 app.use('/generateBill', generateBill);
 app.use('/generateEHR', generateEHR);
 app.use('/generateLabRecord', generateLabRecord);
@@ -58,6 +62,7 @@ app.use('/grantAccess', grantAccess);
 app.use('/logOut', logOut);
 app.use('/readAsset', readAsset);
 app.use('/readIndividualAsset', readIndividualAsset);
+app.use('/readPatientDocuments', readPatientDocuments);
 app.use('/registerDoctor', registerDoctor);
 app.use('/registerHospital', registerHospital);
 app.use('/registerInsurer', registerInsurer);
@@ -70,6 +75,7 @@ app.use('/requestAccess', requestAccess);
 app.use('/revokeAccess', revokeAccess);
 app.use('/updateAsset', updateAsset);
 app.use('/verifyPassword', verifyPassword);
+app.use('/uploadFile', uploadFile);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

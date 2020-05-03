@@ -131,11 +131,11 @@ class patientLogin extends Component {
     };
 
     render() {
-        // if (this.state.loggedIn === true) {
-        //     return <Redirect to={{
-        //         pathname: '/patientDashBoard',
-        //     }}/>;
-        // }
+        if (this.state.loggedIn === true) {
+            return <Redirect to={{
+                pathname: '/patientDashBoard',
+            }}/>;
+        }
         if (this.state.spinner) {
             return <Spinner animation="border"/>;
         } else {

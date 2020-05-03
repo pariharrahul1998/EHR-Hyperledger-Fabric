@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
                     "type": requestType
                 }
             };
-            response = await contract.evaluateTransaction('queryWithQueryString', JSON.stringify(req.body));
+            response = await contract.evaluateTransaction('queryWithQueryString', JSON.stringify(queryString));
             response = JSON.parse(response.toString());
             console.log(response);
         }

@@ -51,8 +51,8 @@ const submit = {
 class doctorLogin extends Component {
 
     constructor(props) {
-        super(props);
         localStorage.removeItem("doctorToken");
+        super(props);
         const token = localStorage.getItem("doctorToken");
         console.log(token);
         let loggedIn = true;
@@ -107,7 +107,7 @@ class doctorLogin extends Component {
                 console.log(response);
                 if (response.data !== "Incorrect" && response.data !== "Failed to verify password") {
                     let doctorToken = {
-                        userName: this.state.userName,
+                        medicalRegistrationNo: this.state.medicalRegistrationNo,
                         sessionKey: response.data
                     };
                     localStorage.setItem("doctorToken", JSON.stringify(doctorToken));

@@ -9,36 +9,54 @@ const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 
 async function main() {
 
     try {
+        /*
+                const walletPath = path.join(process.cwd(), '../../wallet');
+                const wallet = new FileSystemWallet(walletPath);
+                console.log(`************** Wallet path: ${walletPath} **************************`);
 
-        const walletPath = path.join(process.cwd(), '../../wallet');
-        const wallet = new FileSystemWallet(walletPath);
-        console.log(`************** Wallet path: ${walletPath} **************************`);
 
+                const adminExists = await wallet.exists('admin');
+                if (!adminExists) {
+                    console.log('Please run enrollAdmin.js file first ... ');
+                    return;
+                }
 
-        const adminExists = await wallet.exists('admin');
-        if (!adminExists) {
-            console.log('Please run enrollAdmin.js file first ... ');
-            return;
-        }
+                const gateway = new Gateway();
+                await gateway.connect(ccpPath, {wallet, identity: 'admin', discovery: {enabled: true, asLocalhost: true}});
 
-        const gateway = new Gateway();
-        await gateway.connect(ccpPath, {wallet, identity: 'admin', discovery: {enabled: true, asLocalhost: true}});
+                // Get the CA client object from the gateway for interacting with the CA.
+                const ca = gateway.getClient().getCertificateAuthority();
+                const adminIdentity = gateway.getCurrentIdentity();
 
-        // Get the CA client object from the gateway for interacting with the CA.
-        const ca = gateway.getClient().getCertificateAuthority();
-        const adminIdentity = gateway.getCurrentIdentity();
+                const network = await gateway.getNetwork('mychannel');
 
-        const network = await gateway.getNetwork('mychannel');
+                // Get the contract from the network.
 
-        // Get the contract from the network.
-
-        const contract = network.getContract('EHR');
-        let asset = {};
-        //asset.id = "testingHospital1";
-        asset.password = "password";
-        asset.id = "hiRahul";
+                const contract = network.getContract('EHR');
+        */
+        let asset = {
+            address: 'Kavi Nagar Gwalior',
+            appointments: [],
+            bills: ['123'],
+            doctors: ['rahul'],
+            laboratories: [],
+            name: 'Rohini Hospital ',
+            patients: [],
+            pharmacies: [],
+            phone: '9644143960',
+            registrationId: '964414396011',
+            type: 'Hospital',
+            userName: 'rahulparihar',
+            sessionKey: 'c65d75db153800516e3622fcd02c0b56e754cbf2a311e1ffcfa6f17ae29b15d6',
+            password: 'Rahul@123',
+            id: 'rahuparihar'
+        };
+        let documentArray = asset.ehrs || asset.doctors || asset.medicineReceipts || asset.labRecords;
+        let documentType = asset.type + 'Collection';
+        console.log(documentType);
+        console.log(documentArray);
         let response = ["Incorrect"];
-        response = await contract.evaluateTransaction('readMyAsset', JSON.stringify(asset));
+        //   response = await contract.evaluateTransaction('getModifiedAsset', JSON.stringify(asset));
         // var patient = 'Patient';
         // console.log(typeof patient);
         // let requestType = 'pariharrahul2002';
@@ -53,8 +71,8 @@ async function main() {
         //     response = JSON.parse(response.toString());
         //     console.log(response);
         // }
-        console.log(JSON.parse(response.toString()));
-        gateway.disconnect();
+        //console.log(JSON.parse(response.toString()));
+        //gateway.disconnect();
         //
         // let sessionKey = await handler.generateSessionKey(asset.id);
         // console.log(sessionKey);

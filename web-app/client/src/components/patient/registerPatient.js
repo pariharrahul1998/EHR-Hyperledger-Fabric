@@ -71,7 +71,7 @@ class registerPatient extends Component {
             [event.target.name]: event.target.value
         });
     };
-    handleCheckBox = event =>{
+    handleCheckBox = event => {
         this.setState({
             [event.target.name]: event.target.checked
         });
@@ -115,8 +115,8 @@ class registerPatient extends Component {
                 response = response.data;
                 console.log(response);
                 if (response === "Correct") {
-                    localStorage.setItem(this.state.userName, "Patient");
-                    localStorage.setItem(this.state.aadhaar, "Patient");
+                    localStorage.setItem(this.state.userName, this.state.firstName + ' ' + this.state.lastName);
+                    localStorage.setItem(this.state.aadhaar, this.state.firstName + ' ' + this.state.lastName);
                     this.setState({isRegistered: true});
                     console.log(this.state);
                 } else {
@@ -314,7 +314,9 @@ class registerPatient extends Component {
                                 </Grid>
                                 <Grid item xs={12}>
                                     <FormControlLabel
-                                        control={<Checkbox name="SMSUpdates" defaultValue={this.state.SMSUpdates} checked={this.state.SMSUpdates} onChange={this.handleCheckBox} color="primary"/>}
+                                        control={<Checkbox name="SMSUpdates" defaultValue={this.state.SMSUpdates}
+                                                           checked={this.state.SMSUpdates}
+                                                           onChange={this.handleCheckBox} color="primary"/>}
                                         label="I want to receive information and updates via sms."
                                     />
                                 </Grid>

@@ -16,7 +16,7 @@ export const mainListItems = (
             <ListItemIcon>
                 <DashboardIcon />
             </ListItemIcon>
-            <ListItemText primary="PatientDashBoard" />
+            <ListItemText primary="HospitalDashBoard" />
         </ListItem>
         <ListItem button>
             <ListItemIcon>

@@ -266,7 +266,7 @@ class EhrContract extends Contract {
      * @param record - will be in the form of hash of the the original record either in the form of pdf of any digital copy
      * @returns {Promise<string>}
      */
-    async createEhr(ctx, args, record) {
+    async createEhr(ctx, args) {
         args = await JSON.parse(args);
         let hospitalExists = await this.assetExists(ctx, args.hospitalId);
         let patientExists = await this.assetExists(ctx, args.patientId);
@@ -276,7 +276,7 @@ class EhrContract extends Contract {
         if (hospitalExists && doctorExists && patientExists && appointmentExists) {
 
             //create a new EHR and update it in the world state
-            let newEHR = await new EHR(args.ehrId, args.patientId, args.doctorId, args.hospitalId, record, args.time);
+            let newEHR = await new EHR(args.ehrId, args.patientId, args.doctorId, args.hospitalId, args.record, args.time);
             await ctx.stub.putState(newEHR.ehrId, Buffer.from(JSON.stringify(newEHR)));
 
             //update the EHR in the list of the ehrs for the patient and remove the appointment from the patient global state
@@ -919,9 +919,9 @@ class EhrContract extends Contract {
         args = await JSON.parse(args);
         const exists = await this.assetExists(ctx, args.id);
         if (!exists) {
-            throw new Error(`The ehr ${ehrId} does not exist`);
+            throw new Error(`The ehr ${args.id} does not exist`);
         }
-        await ctx.stub.putState(args.id, args);
+        await ctx.stub.putState(args.id, Buffer.from(JSON.stringify(args)));
     }
 
     /**
@@ -1471,6 +1471,24 @@ class EhrContract extends Contract {
         } else {
             throw new Error(`No such asset with id ${args.id}`);
         }
+    }
+
+    async getPermissionedDocuments(ctx, args) {
+        args = JSON.parse(args);
+        let patientExists = await this.assetExists(ctx, args.patientId);
+        let requesterExists = await this.assetExists(ctx, args.requesterId);
+        if (patientExists && requesterExists) {
+            let patientAsBytes = await ctx.stub.getState(args.patientId);
+            let patient = JSON.parse(patientAsBytes);
+            let documentIds = patient.permissionedIds[args.requesterId];
+            if (documentIds.length()) {
+                return documentIds;
+            } else {
+                return [];
+            }
+        }
+        return "no such patient or requester exists";
+
     }
 
 }
