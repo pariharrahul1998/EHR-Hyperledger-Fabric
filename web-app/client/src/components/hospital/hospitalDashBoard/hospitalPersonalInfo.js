@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
-import Title from './Title';
+import Title from '../../genericFiles/Title';
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
@@ -11,7 +11,8 @@ import Avatar from "@material-ui/core/Avatar";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
+import {ADDRESS} from "../../genericFiles/constants";
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 const avatar = {
@@ -34,6 +35,7 @@ const submit = {
 
 export default function HospitalPersonalInfo(props) {
     const [updatedData, setUpdatedData] = React.useState(JSON.parse(props.data));
+    const [loaded, setLoaded] = React.useState(false);
     var hospital = updatedData;
     hospital.password = '';
     hospital.id = hospital.registrationId;
@@ -53,7 +55,7 @@ export default function HospitalPersonalInfo(props) {
 
     const submitForm = async (event) => {
         event.preventDefault();
-
+        setLoaded(true);
         let response = "";
         try {
             console.log(hospital);
@@ -73,7 +75,7 @@ export default function HospitalPersonalInfo(props) {
             //show error message
             console.log("failed to connect to the server");
         }
-
+        setLoaded(false);
     };
 
     return (
@@ -174,6 +176,7 @@ export default function HospitalPersonalInfo(props) {
                     </div>
                 </Container>
             </div>
+            <SpinnerDialog open={loaded}/>
         </React.Fragment>
     );
 }

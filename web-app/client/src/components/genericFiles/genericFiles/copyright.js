@@ -16,7 +16,7 @@ const copyright = {
             </Typography>
         );
     }
-}
+};
 
 
 export {copyright as default}

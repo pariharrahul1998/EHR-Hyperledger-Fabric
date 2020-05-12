@@ -4,7 +4,7 @@ import './App.css';
 import Home from './components/Home'
 import patientLogin from './components/patient/patientLogin'
 import registerPatient from "./components/patient/registerPatient";
-import mediBlock from "./components/mediBlock";
+import MediBlock from "./components/genericFiles/mediBlock";
 import registerDoctor from "./components/doctor/registerDoctor";
 import doctorLogin from "./components/doctor/doctorLogin";
 import hospitalLogin from "./components/hospital/hospitalLogin";
@@ -13,14 +13,25 @@ import patientDashBoard from "./components/patient/patientDashBoard/patientDashB
 import hospitalDashBoard from "./components/hospital/hospitalDashBoard/hospitalDashBoard";
 import Dashboard from "./components/DashBoard/DashBoard";
 import doctorDashboard from "./components/doctor/doctorDashBoard/doctorDashboard";
-import UploadButtons  from "./components/UploadButtons";
+import registerLaboratory from "./components/laboratory/registerLaboratory";
+import laboratoryLogin from "./components/laboratory/laboratoryLogin";
+import laboratoryDashboard from "./components/laboratory/laboratoryDashboard/laboratoryDashboard";
+import registerPharmacy from "./components/pharmacy/registerPharmacy";
+import pharmacyLogin from "./components/pharmacy/pharmacyLogin";
+import pharmacyDashboard from "./components/pharmacy/pharmacyDashboard/pharmacyDashboard";
+import registerResearcher from "./components/researcher/registerResearcher";
+import researcherLogin from "./components/researcher/reseracherLogin";
+import registerInsurance from "./components/insurance/registerInsurance";
+import insuranceLogin from "./components/insurance/insuranceLogin";
+import researcherDashboard from "./components/researcher/researcherDashboard/researcherDashboard";
+import insuranceDashboard from "./components/insurance/insuranceDashboard/insuranceDashboard";
 class App extends Component {
     render() {
         return (
             <div>
                 <Router>
                     <Route path="/" exact component={Home}/>
-                    <Route path="/mediBlock" exact component={mediBlock}/>
+                    <Route path="/mediBlock" exact component={MediBlock}/>
                     <Route path="/patientLogin" exact component={patientLogin}/>
                     <Route path="/registerPatient" exact component={registerPatient}/>
                     <Route path="/registerDoctor" exact component={registerDoctor}/>
@@ -31,7 +42,18 @@ class App extends Component {
                     <Route path="/hospitalDashBoard" exact component={hospitalDashBoard}/>
                     <Route path="/dashboard" exact component={Dashboard}/>
                     <Route path="/doctorDashBoard" exact component={doctorDashboard}/>
-                    <Route path="/uploadButton" exact component={UploadButtons}/>
+                    <Route path="/registerLaboratory" exact component={registerLaboratory}/>
+                    <Route path="/laboratoryLogin" exact component={laboratoryLogin}/>
+                    <Route path="/laboratoryDashBoard" exact component={laboratoryDashboard}/>
+                    <Route path="/registerPharmacy" exact component={registerPharmacy}/>
+                    <Route path="/pharmacyLogin" exact component={pharmacyLogin}/>
+                    <Route path="/pharmacyDashBoard" exact component={pharmacyDashboard}/>
+                    <Route path="/registerResearcher" exact component={registerResearcher}/>
+                    <Route path="/researcherLogin" exact component={researcherLogin}/>
+                    <Route path="/researcherDashBoard" exact component={researcherDashboard}/>
+                    <Route path="/registerInsurance" exact component={registerInsurance}/>
+                    <Route path="/insuranceLogin" exact component={insuranceLogin}/>
+                    <Route path="/insuranceDashboard" exact component={insuranceDashboard}/>
                 </Router>
             </div>
         );

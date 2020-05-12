@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 import axios from 'axios';
-import {ADDRESS} from "../constants";
+import {ADDRESS} from "../genericFiles/constants";
 import {Redirect} from 'react-router-dom';
-import Spinner from "react-bootstrap/Spinner";
 import Grid from "@material-ui/core/Grid";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Paper from "@material-ui/core/Paper";
@@ -16,8 +15,9 @@ import Box from "@material-ui/core/Box";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import Link from "@material-ui/core/Link";
 import Button from '@material-ui/core/Button';
-import copyright from '../copyright';
-import PopUp from "../PopUp";
+import copyright from '../genericFiles/copyright';
+import PopUp from "../genericFiles/PopUp";
+import SpinnerDialog from "../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 const image = {
@@ -69,7 +69,8 @@ class hospitalLogin extends Component {
             alertHeading: '',
             sessionKey: '',
             loggedIn,
-            errors: {}
+            errors: {},
+            loaded: false
         }
     }
 
@@ -102,7 +103,9 @@ class hospitalLogin extends Component {
             };
             let response;
             try {
+                this.setState({loaded: true});
                 response = await axios.post(ADDRESS + `verifyPassword`, hospitalCredentials);
+                this.setState({loaded: false});
                 response = response.data;
                 console.log(response);
                 if (response.data !== "Incorrect" && response.data !== "Failed to verify password") {
@@ -124,6 +127,7 @@ class hospitalLogin extends Component {
                 }
             } catch (e) {
                 this.setState({
+                    loaded: false,
                     alertShow: true,
                     alertHeading: "Server Error",
                     alertData: "Can not connect to the server",
@@ -141,108 +145,105 @@ class hospitalLogin extends Component {
                 pathname: '/hospitalDashBoard',
             }}/>;
         }
-        if (this.state.spinner) {
-            return <Spinner animation="border"/>;
-        } else {
+        return (
 
-            return (
+            <Grid container component="main" style={root}>
+                <PopUp
+                    alertData={this.state.alertData}
+                    alertHeading={this.state.alertHeading}
+                    alertShow={this.state.alertShow}
+                    alertCloseFunc={() => this.setState({alertShow: false})}
+                />
+                <CssBaseline/>
+                <Grid item xs={false} sm={4} md={7} style={image}/>
 
-                <Grid container component="main" style={root}>
-                    <PopUp
-                        alertData={this.state.alertData}
-                        alertHeading={this.state.alertHeading}
-                        alertShow={this.state.alertShow}
-                        alertCloseFunc={() => this.setState({alertShow: false})}
-                    />
-                    <CssBaseline/>
-                    <Grid item xs={false} sm={4} md={7} style={image}/>
-
-                    <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
-                        <div style={paper}>
-                            <Avatar style={avatar}>
-                                <LockOutlinedIcon/>
-                            </Avatar>
-                            <Typography component="h1" variant="h5">
-                                Hospital SignIn
-                            </Typography>
-                            <form style={form} noValidate onSubmit={this.submitForm}>
-                                <TextField
-                                    variant="outlined"
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    id="userName"
-                                    label="UserName"
-                                    name="userName"
-                                    autoComplete="userName"
-                                    autoFocus
-                                    defaultValue={this.state.userName}
-                                    onChange={this.handleChange}
-                                    helperText={this.state.errors.userName}
-                                />
-                                <TextField
-                                    variant="outlined"
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    id="registrationId"
-                                    label="Registration Id"
-                                    name="registrationId"
-                                    autoComplete="registrationId"
-                                    autoFocus
-                                    defaultValue={this.state.registrationId}
-                                    onChange={this.handleChange}
-                                    helperText={this.state.errors.registrationId}
-                                />
-                                <TextField
-                                    variant="outlined"
-                                    margin="normal"
-                                    required
-                                    fullWidth
-                                    name="password"
-                                    label="Password"
-                                    type="password"
-                                    id="password"
-                                    autoComplete="current-password"
-                                    defaultValue={this.state.password}
-                                    onChange={this.handleChange}
-                                    helperText={this.state.errors.password}
-                                />
-                                <FormControlLabel
-                                    control={<Checkbox value="remember" color="primary"/>}
-                                    label="Remember me"
-                                />
-                                <Button
-                                    type="submit"
-                                    fullWidth
-                                    variant="contained"
-                                    color="primary"
-                                    style={submit}
-                                >
-                                    Sign In
-                                </Button>
-                                <Grid container>
-                                    <Grid item xs>
-                                        <Link href="#" variant="body2">
-                                            Forgot password?
-                                        </Link>
-                                    </Grid>
-                                    <Grid item>
-                                        <Link href="/registerHospital" variant="body2">
-                                            {"Don't have an account? Sign Up"}
-                                        </Link>
-                                    </Grid>
+                <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+                    <div style={paper}>
+                        <Avatar style={avatar}>
+                            <LockOutlinedIcon/>
+                        </Avatar>
+                        <Typography component="h1" variant="h5">
+                            Hospital SignIn
+                        </Typography>
+                        <form style={form} noValidate onSubmit={this.submitForm}>
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                id="userName"
+                                label="UserName"
+                                name="userName"
+                                autoComplete="userName"
+                                autoFocus
+                                defaultValue={this.state.userName}
+                                onChange={this.handleChange}
+                                helperText={this.state.errors.userName}
+                            />
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                id="registrationId"
+                                label="Registration Id"
+                                name="registrationId"
+                                autoComplete="registrationId"
+                                autoFocus
+                                defaultValue={this.state.registrationId}
+                                onChange={this.handleChange}
+                                helperText={this.state.errors.registrationId}
+                            />
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                name="password"
+                                label="Password"
+                                type="password"
+                                id="password"
+                                autoComplete="current-password"
+                                defaultValue={this.state.password}
+                                onChange={this.handleChange}
+                                helperText={this.state.errors.password}
+                            />
+                            <FormControlLabel
+                                control={<Checkbox value="remember" color="primary"/>}
+                                label="Remember me"
+                            />
+                            <Button
+                                type="submit"
+                                fullWidth
+                                variant="contained"
+                                color="primary"
+                                style={submit}
+                            >
+                                Sign In
+                            </Button>
+                            <Grid container>
+                                <Grid item xs>
+                                    <Link href="/" variant="body2">
+                                        Home Page
+                                    </Link>
                                 </Grid>
-                                <Box mt={5}>
-                                    <copyright.Copyright/>
-                                </Box>
-                            </form>
-                        </div>
-                    </Grid>
+                                <Grid item>
+                                    <Link href="/registerHospital" variant="body2">
+                                        {"Don't have an account? Sign Up"}
+                                    </Link>
+                                </Grid>
+                            </Grid>
+                            <Box mt={5}>
+                                <copyright.Copyright/>
+                            </Box>
+                        </form>
+                    </div>
                 </Grid>
-            );
-        }
+                <SpinnerDialog open={this.state.loaded}/>
+            </Grid>
+        );
     }
+
 }
 
 export default hospitalLogin;

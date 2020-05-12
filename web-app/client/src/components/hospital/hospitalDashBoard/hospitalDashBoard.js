@@ -20,19 +20,25 @@ import HospitalPersonalInfo from './hospitalPersonalInfo';
 import ExitToApp from "@material-ui/icons/ExitToApp";
 import {Redirect} from "react-router-dom";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
-import copyright from '../../copyright';
+import {ADDRESS} from "../../genericFiles/constants";
+import copyright from '../../genericFiles/copyright';
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import DashboardIcon from "@material-ui/icons/Dashboard";
+import PeopleIcon from '@material-ui/icons/People';
 import ListItemText from "@material-ui/core/ListItemText";
-import PeopleIcon from "@material-ui/icons/People";
-import BarChartIcon from "@material-ui/icons/BarChart";
-import LayersIcon from "@material-ui/icons/Layers";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
+import NoteAddIcon from '@material-ui/icons/NoteAdd';
+import FileCopyIcon from "@material-ui/icons/FileCopy";
 import AssignDoctor from "./assignDoctor";
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
+import ViewPatientDocuments from "../../genericFiles/viewPatientDocuments";
+import RequestDocumentAccess from "../../genericFiles/requestDocumentsAccess";
+import HospitalAssets from "./hospitalAssets";
+import GenerateBill from "./generateBill";
+import ViewBills from "./viewBill";
 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
@@ -124,6 +130,7 @@ var hospitalFormat = {
     pharmacies: [],
     phone: "",
     registrationId: "",
+    remainingPatientBills: [],
     sessionKey: "",
     type: "Hospital",
     userName: ""
@@ -133,13 +140,20 @@ export default function HospitalDashBoard() {
     const classes = useStyles();
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
     const [hospitalData, setHospitalData] = React.useState(hospitalFormat);
+    const [loaded, setLoaded] = React.useState(false);
     const [open, setOpen] = React.useState(true);
     const [logOut, setLogOut] = React.useState(false);
     const [hospitalInfoDisplay, setHospitalInfoDisplay] = React.useState(false);
     const [assignDoctorDisplay, setAssignDoctorDisplay] = React.useState(false);
+    const [generateBillDisplay, setGenerateBillDisplay] = React.useState(false);
+    const [checkAssetDisplay, setCheckAssetDisplay] = React.useState(false);
+    const [requestAccessDisplay, setRequestAccessDisplay] = React.useState(false);
+    const [viewDocumentsDisplay, setViewDocumentsDisplay] = React.useState(false);
+    const [viewBillsDisplay, setViewBillsDisplay] = React.useState(false);
 
     useEffect(() => {
         const fetchHospitalData = async () => {
+            setLoaded(true);
             try {
                 let hospitalCredentials = JSON.parse(localStorage.getItem('hospitalToken'));
                 console.log(hospitalCredentials);
@@ -160,6 +174,7 @@ export default function HospitalDashBoard() {
             } catch (e) {
                 console.log(e);
             }
+            setLoaded(false);
         };
         fetchHospitalData();
     }, []);
@@ -167,6 +182,7 @@ export default function HospitalDashBoard() {
 
     const handleLogOut = async () => {
         console.log("herer");
+        setLoaded(true);
         try {
             let hospitalCredentials = JSON.parse(localStorage.getItem('hospitalToken'));
             hospitalCredentials.id = hospitalCredentials.registrationId;
@@ -182,6 +198,7 @@ export default function HospitalDashBoard() {
         } catch (e) {
             //handle the error by giving out a error messeage saying the logOUt failed
         }
+        setLoaded(false);
     };
 
     const handleDrawerOpen = () => {
@@ -216,9 +233,69 @@ export default function HospitalDashBoard() {
             }
         }
     };
+    const visibilityHandlerGenerateBill = () => {
+        var x = document.getElementById("generateBill");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setGenerateBillDisplay(true);
+            } else {
+                x.style.display = "none";
+                setGenerateBillDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerCheckAssets = () => {
+        var x = document.getElementById("checkAsset");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setCheckAssetDisplay(true);
+            } else {
+                x.style.display = "none";
+                setCheckAssetDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerRequestAccess = () => {
+        var x = document.getElementById("requestAccess");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setRequestAccessDisplay(true);
+            } else {
+                x.style.display = "none";
+                setRequestAccessDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerViewDocuments = () => {
+        var x = document.getElementById("viewDocuments");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewDocumentsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewDocumentsDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerViewBills = () => {
+        console.log("insdfsdfsidre");
+        var x = document.getElementById("viewBills");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewBillsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewBillsDisplay(false);
+            }
+        }
+    };
 
-
-    console.log(hospitalInfoDisplay);
+    console.log("DisplayChecker");
     if (hospitalInfoDisplay) {
         console.log("here");
         var hospitalInfo = (
@@ -226,12 +303,45 @@ export default function HospitalDashBoard() {
                 <HospitalPersonalInfo data={JSON.stringify(hospitalData)}/>
             </Paper>
         );
-    }
-
-    if (assignDoctorDisplay) {
+    } else if (assignDoctorDisplay) {
         var assignDoctor = (
             <Paper className={fixedHeightPaper} style={{height: '360'}}>
                 <AssignDoctor data={JSON.stringify(hospitalData)}/>
+            </Paper>
+        );
+    } else if (generateBillDisplay) {
+        console.log("lllll");
+        var generateBill = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <GenerateBill data={JSON.stringify(hospitalData)}/>
+            </Paper>
+        );
+    } else if (checkAssetDisplay) {
+        console.log("alns");
+        var checkAsset = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <HospitalAssets data={JSON.stringify(hospitalData)}/>
+            </Paper>
+        );
+    } else if (requestAccessDisplay) {
+        console.log("nowhere");
+        var requestAccess = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <RequestDocumentAccess data={JSON.stringify(hospitalData)}/>
+            </Paper>
+        );
+    } else if (viewDocumentsDisplay) {
+        console.log("here there");
+        var viewDocuments = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewPatientDocuments data={JSON.stringify(hospitalData)}/>
+            </Paper>
+        );
+    } else if (viewBillsDisplay) {
+        console.log("Bills");
+        var viewBills = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewBills data={JSON.stringify(hospitalData)}/>
             </Paper>
         );
     }
@@ -250,46 +360,40 @@ export default function HospitalDashBoard() {
                 </ListItemIcon>
                 <ListItemText primary="Assign Doctor"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerGenerateBill}>
+                <ListItemIcon>
+                    <NoteAddIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Generate Bill"/>
+            </ListItem>
+            <ListItem button onClick={visibilityHandlerCheckAssets}>
                 <ListItemIcon>
                     <PeopleIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Customers"/>
+                <ListItemText primary="Check Assets"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerRequestAccess}>
                 <ListItemIcon>
-                    <BarChartIcon/>
+                    <FileCopyIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Reports"/>
-            </ListItem>
-            <ListItem button>
-                <ListItemIcon>
-                    <LayersIcon/>
-                </ListItemIcon>
-                <ListItemText primary="Integrations"/>
+                <ListItemText primary="Request Documents"/>
             </ListItem>
         </div>
     );
     const secondaryListItems = (
         <div>
             <ListSubheader inset>Saved reports</ListSubheader>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerViewBills}>
                 <ListItemIcon>
                     <AssignmentIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Current month"/>
+                <ListItemText primary="View Bills"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerViewDocuments}>
                 <ListItemIcon>
                     <AssignmentIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Last quarter"/>
-            </ListItem>
-            <ListItem button>
-                <ListItemIcon>
-                    <AssignmentIcon/>
-                </ListItemIcon>
-                <ListItemText primary="Year-end sale"/>
+                <ListItemText primary="View Documents"/>
             </ListItem>
         </div>
     );
@@ -355,13 +459,28 @@ export default function HospitalDashBoard() {
                         <Grid item xs={12} style={{display: 'none'}} id="assignDoctor">
                             {assignDoctor}
                         </Grid>
-
+                        <Grid item xs={12} style={{display: 'none'}} id="generateBill">
+                            {generateBill}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="checkAsset">
+                            {checkAsset}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="requestAccess">
+                            {requestAccess}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewDocuments">
+                            {viewDocuments}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewBills">
+                            {viewBills}
+                        </Grid>
                     </Grid>
                     <Box pt={4}>
                         <copyright.Copyright/>
                     </Box>
                 </Container>
             </main>
+            <SpinnerDialog open={loaded}/>
         </div>
     );
 }

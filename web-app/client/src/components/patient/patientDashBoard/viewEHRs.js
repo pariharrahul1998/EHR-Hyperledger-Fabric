@@ -5,12 +5,13 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Title from './Title';
+import Title from '../../genericFiles/Title';
 import axios from "axios";
-import {ADDRESS} from "../../constants";
+import {ADDRESS} from "../../genericFiles/constants";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import PropTypes from 'prop-types';
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -26,7 +27,7 @@ function SimpleDialog(props) {
         onClose(imageURL);
     };
     return (
-        <Dialog onClose={handleClose} aria-labelledby="simple-dialog-title" open={open}>
+        <Dialog onClose={handleClose} scroll={"body"} aria-labelledby="simple-dialog-title" open={open}>
             <img src={imageURL} alt="rahul parihar"
                  width="100%" height="60%"/>
         </Dialog>
@@ -38,14 +39,17 @@ SimpleDialog.propTypes = {
     open: PropTypes.bool.isRequired,
     imageURL: PropTypes.string.isRequired,
 };
+
 export default function ViewEHRs(props) {
     const classes = useStyles();
     const [updatedData, setUpdatedData] = React.useState(JSON.parse(props.data));
+    const [loaded, setLoaded] = React.useState(false);
     const [ehrsDetail, setEHRsDetail] = React.useState([]);
     const [open, setOpen] = React.useState(false);
     const [imageURL, setImageURL] = React.useState('');
     useEffect(() => {
         const fetchEHRsData = async () => {
+            setLoaded(true);
             try {
                 let patientSchema = {
                     patientId: updatedData.userName,
@@ -61,6 +65,7 @@ export default function ViewEHRs(props) {
             } catch (e) {
                 console.log(e);
             }
+            setLoaded(false);
         };
         fetchEHRsData();
     }, []);
@@ -68,6 +73,7 @@ export default function ViewEHRs(props) {
     async function displayEHR(values) {
         console.log(values);
         console.log("here");
+        setLoaded(true);
         try {
             let fileSchema = {
                 documentId: values.ehrId,
@@ -85,6 +91,7 @@ export default function ViewEHRs(props) {
         } catch (e) {
             console.log(e);
         }
+        setLoaded(false);
     }
 
     function createTableBody() {
@@ -117,11 +124,11 @@ export default function ViewEHRs(props) {
             <Table size="small">
                 <TableHead>
                     <TableRow>
-                        <TableCell>Document Id</TableCell>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Doctor Name</TableCell>
-                        <TableCell>Hospital Name</TableCell>
-                        <TableCell>View Document</TableCell>
+                        <TableCell style={{fontWeight: 'bold'}}>Document Id</TableCell>
+                        <TableCell style={{fontWeight: 'bold'}}>Date</TableCell>
+                        <TableCell style={{fontWeight: 'bold'}}>Doctor Name</TableCell>
+                        <TableCell style={{fontWeight: 'bold'}}>Hospital Name</TableCell>
+                        <TableCell style={{fontWeight: 'bold'}}>View Document</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -129,6 +136,7 @@ export default function ViewEHRs(props) {
                 </TableBody>
             </Table>
             <SimpleDialog imageURL={imageURL} open={open} onClose={handleClose}/>
+            <SpinnerDialog open={loaded}/>
         </React.Fragment>
     );
 }

@@ -7,6 +7,7 @@ const path = require('path');
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
 const walletPath = path.join(process.cwd(), '../wallet');
 const wallet = new FileSystemWallet(walletPath);
+let databaseHandler = require('./accessDocumentDatabase');
 
 router.post('/', async (req, res) => {
 
@@ -58,8 +59,8 @@ router.post('/', async (req, res) => {
         let response = await registerInLedger(req);
 
         console.log(response.length + " hey");
+        let registeredUser = await databaseHandler.registerNewUser(req.body.userName, req.body.firstName + " " + req.body.lastName, 'Patient');
         res.send("Correct");
-
     } catch (error) {
         await wallet.delete(req.body.userName);
         console.error(`Failed to register user ${req.body.userName}: ${error}`);

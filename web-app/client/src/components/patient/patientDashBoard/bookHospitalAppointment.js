@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import Link from '@material-ui/core/Link';
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import Title from './Title';
+import Title from '../../genericFiles/Title';
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
@@ -11,10 +11,10 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import Avatar from "@material-ui/core/Avatar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
+import {ADDRESS} from "../../genericFiles/constants";
 import PostAddIcon from '@material-ui/icons/PostAdd';
 import MenuItem from "@material-ui/core/MenuItem";
-
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 const avatar = {
@@ -41,6 +41,7 @@ const useStyles = makeStyles(theme => ({
 export default function BookHospitalAppointment(props) {
     const classes = useStyles();
     const [updatedData, setUpdatedData] = React.useState(JSON.parse(props.data));
+    const [loaded, setLoaded] = React.useState(false);
     const [hospitals, setHospitals] = React.useState([]);
     var appointment = {
         appointmentId: '',
@@ -54,6 +55,7 @@ export default function BookHospitalAppointment(props) {
 
     useEffect(() => {
         const fetchHospitals = async () => {
+            setLoaded(true);
             try {
                 let dataType = {
                     dataType: "Hospital",
@@ -76,6 +78,7 @@ export default function BookHospitalAppointment(props) {
             } catch (e) {
                 console.log(e);
             }
+            setLoaded(false);
         };
         fetchHospitals();
     }, []);
@@ -87,7 +90,7 @@ export default function BookHospitalAppointment(props) {
 
     const submitAppointment = async (event) => {
         event.preventDefault();
-
+        setLoaded(true);
         let response = "";
         try {
             console.log(appointment);
@@ -111,6 +114,7 @@ export default function BookHospitalAppointment(props) {
             //show error message
             console.log("failed to connect to the server");
         }
+        setLoaded(false);
 
     };
     console.log(hospitals);
@@ -199,7 +203,7 @@ export default function BookHospitalAppointment(props) {
                     </form>
                 </div>
             </Container>
-
+            <SpinnerDialog open={loaded}/>
         </React.Fragment>
     );
 }

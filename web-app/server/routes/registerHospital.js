@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {FileSystemWallet, Gateway, X509WalletMixin} = require('fabric-network');
 const path = require('path');
+const databaseHandler = require("./accessDocumentDatabase");
 
 const ccpPath = path.resolve(__dirname, '..', '..', '..', 'Blockchain-Network', 'first-network', 'connection-org1.json');
 const walletPath = path.join(process.cwd(), '../wallet');
@@ -60,6 +61,7 @@ router.post('/', async (req, res) => {
         let response = await registerInLedger(req);
 
         console.log(response.length + " hey");
+        let registeredUser = await databaseHandler.registerNewUser(req.body.registrationId, req.body.name, 'Hospital');
         res.send("Correct");
 
     } catch (error) {

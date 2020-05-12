@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import Title from './Title';
+import Title from '../../genericFiles/Title';
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
@@ -10,11 +10,10 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import Avatar from "@material-ui/core/Avatar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
+import {ADDRESS} from "../../genericFiles/constants";
 import PublishIcon from '@material-ui/icons/Publish';
 import MenuItem from "@material-ui/core/MenuItem";
-import Input from "@material-ui/core/Input";
-
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 const avatar = {
@@ -44,12 +43,19 @@ var appointmentFormat = {
     time: '',
     description: '',
 };
+
 export default function GenerateEHR(props) {
     const classes = useStyles();
     const [updatedData, setUpdatedData] = React.useState(JSON.parse(props.data));
+    const [loaded, setLoaded] = React.useState(false);
     const [appointmentId, setAppointmentId] = React.useState("");
     const [selectedEHRFile, setSelectedEHRFile] = React.useState('');
     const [appointment, setAppointment] = React.useState(appointmentFormat);
+    const [pharmacy, setPharmacy] = React.useState(' ');
+    const [laboratory, setLaboratory] = React.useState(' ');
+    const [allPharmacies, setAllPharmacies] = React.useState([]);
+    const [allLaboratories, setAllLaboratories] = React.useState([]);
+
     var EHRSchema = {
         appointmentId: appointmentId,
         hospitalId: updatedData.currentHospital,
@@ -61,6 +67,45 @@ export default function GenerateEHR(props) {
     var doctor = updatedData;
     var appointments = doctor.appointments;
     console.log(updatedData);
+
+    useEffect(() => {
+        const fetchPharmaciesAndLaboratoriesData = async () => {
+            try {
+                setLoaded(true);
+                let payloadSchema = {
+                    dataType: 'Pharmacy',
+                    hospitalId: updatedData.hospitalId
+                };
+                let response = await axios.post(ADDRESS + `getGenericData`, payloadSchema);
+                response = response.data;
+                console.log(response);
+                console.log(typeof response);
+                if (typeof response === 'object') {
+                    let pharmacyArray = [];
+                    for (let i = 0; i < response.length; i++) {
+                        pharmacyArray.push(response[i].Record);
+                    }
+                    setAllPharmacies(pharmacyArray);
+                }
+                payloadSchema.dataType = 'Laboratory';
+                response = await axios.post(ADDRESS + `getGenericData`, payloadSchema);
+                response = response.data;
+                console.log(response);
+                console.log(typeof response);
+                if (typeof response === 'object') {
+                    let laboratoryArray = [];
+                    for (let i = 0; i < response.length; i++) {
+                        laboratoryArray.push(response[i].Record);
+                    }
+                    setAllLaboratories(laboratoryArray);
+                }
+                setLoaded(false);
+            } catch (e) {
+                console.log(e);
+            }
+        };
+        fetchPharmaciesAndLaboratoriesData();
+    }, []);
 
     const manageAppointmentDisplay = () => {
         var x = document.getElementById("currentAppointment");
@@ -74,6 +119,7 @@ export default function GenerateEHR(props) {
     const handleChange = async (event) => {
         event.preventDefault();
         if (event.target.name === 'appointmentId') {
+            setLoaded(true);
             setAppointmentId(event.target.value);
             let response = "";
             try {
@@ -96,9 +142,14 @@ export default function GenerateEHR(props) {
                 //show error message
                 console.log("failed to connect to the server");
             }
+            setLoaded(false);
         } else if (event.target.name === 'EHR') {
             console.log(event.target.files[0].name);
             setSelectedEHRFile(event.target.files[0]);
+        } else if (event.target.name === 'pharmacyId') {
+            setPharmacy(event.target.value);
+        } else if (event.target.name === 'laboratoryId') {
+            setLaboratory(event.target.value);
         }
         console.log("asd");
     };
@@ -117,7 +168,12 @@ export default function GenerateEHR(props) {
             data.append('time', new Date().toLocaleString());
             data.append('documentType', EHRSchema.documentType);
             data.append('sessionKey', doctor.sessionKey);
+            data.append('pharmacyId', pharmacy);
+            data.append('laboratoryId', laboratory);
+
+            setLoaded(true);
             response = await axios.post(ADDRESS + `generateEHR`, data);
+            setLoaded(false);
             response = response.data;
             if (response === 'Correct') {
                 manageAppointmentDisplay();
@@ -141,6 +197,54 @@ export default function GenerateEHR(props) {
             items.push(<MenuItem
                 key={i}
                 value={appointments[i]}>{appointments[i]}</MenuItem>);
+        }
+        return items;
+    }
+
+    function createLaboratoryMenuItems() {
+        console.log("hert");
+        console.log(allLaboratories);
+        let items = [];
+        for (let i = 0; i < allLaboratories.length; i++) {
+            items.push(<MenuItem
+                key={i}
+                value={allLaboratories[i].registrationId}>{allLaboratories[i].registrationId + " " + allLaboratories[i].laboratoryType}</MenuItem>);
+        }
+        return items;
+    }
+
+    function createPharmacyMenuItems() {
+        console.log("hert");
+        console.log(allPharmacies);
+        let items = [];
+        for (let i = 0; i < allPharmacies.length; i++) {
+            items.push(<MenuItem
+                key={i}
+                value={allPharmacies[i].registrationId}>{allPharmacies[i].registrationId}</MenuItem>);
+        }
+        return items;
+    }
+
+    function createLaboratoryMenuItems() {
+        console.log("hert");
+        console.log(allLaboratories);
+        let items = [];
+        for (let i = 0; i < allLaboratories.length; i++) {
+            items.push(<MenuItem
+                key={i}
+                value={allLaboratories[i].registrationId}>{allLaboratories[i].registrationId + " " + allLaboratories[i].laboratoryType}</MenuItem>);
+        }
+        return items;
+    }
+
+    function createPharmacyMenuItems() {
+        console.log("hert");
+        console.log(allPharmacies);
+        let items = [];
+        for (let i = 0; i < allPharmacies.length; i++) {
+            items.push(<MenuItem
+                key={i}
+                value={allPharmacies[i].registrationId}>{allPharmacies[i].registrationId}</MenuItem>);
         }
         return items;
     }
@@ -173,52 +277,89 @@ export default function GenerateEHR(props) {
                                 </TextField>
                             </Grid>
                         </Grid>
-                        <Grid container spacing={2} id='currentAppointment' style={{display: 'none'}}>
-                            <Grid item xs={12}>
-                                <Typography component="p" variant="h6" align='center'>
-                                    Patient Name : {localStorage.getItem(appointment.patientId)}
-                                    <br/>
-                                    Time: {appointment.time}
-                                    <br/>
-                                    Description : {appointment.description}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12}>
+                        <div id='currentAppointment' style={{display: 'none'}}>
+                            <Grid container spacing={2}>
+
+                                <Grid item xs={12}>
+                                    <Typography component="p" variant="h6" align='center'>
+                                        Patient Name : {localStorage.getItem(appointment.patientId)}
+                                        <br/>
+                                        Time: {appointment.time}
+                                        <br/>
+                                        Description : {appointment.description}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField variant="outlined"
+                                               required
+                                               fullWidth
+                                               select
+                                               id="select"
+                                               label="Pharmacy"
+                                               name="pharmacyId"
+                                               autoComplete="pharmacyId"
+                                               classes={{root: classes.root}}
+                                               defaultValue={pharmacy || ''}
+                                               onChange={handleChange}
+                                    >
+                                        {createPharmacyMenuItems()}
+                                    </TextField>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField variant="outlined"
+                                               required
+                                               fullWidth
+                                               select
+                                               id="select"
+                                               label="Laboratory"
+                                               name="laboratoryId"
+                                               autoComplete="laboratoryId"
+                                               classes={{root: classes.root}}
+                                               defaultValue={laboratory || ''}
+                                               onChange={handleChange}
+                                    >
+                                        {createLaboratoryMenuItems()}
+                                    </TextField>
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                    <Button
+                                        variant="contained"
+                                        component="label"
+                                        fullWidth
+                                        color="primary"
+                                    >
+                                        Choose EHR
+                                        <input
+                                            type="file"
+                                            style={{display: "none"}}
+                                            onChange={handleChange}
+                                            name="EHR"
+                                        />
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Typography align='center'>
+                                        {selectedEHRFile === '' ? chosenFilename : selectedEHRFile.name}
+                                    </Typography>
+                                </Grid>
+
                                 <Button
-                                    variant="contained"
-                                    component="label"
+                                    type="submit"
                                     fullWidth
+                                    variant="contained"
                                     color="primary"
+                                    style={submit}
                                 >
-                                    Choose EHR
-                                    <input
-                                        type="file"
-                                        style={{display: "none"}}
-                                        onChange={handleChange}
-                                        name="EHR"
-                                    />
+                                    Upload EHR
                                 </Button>
                             </Grid>
-                            <Grid item xs={12}>
-                                <Typography align='center'>
-                                    {selectedEHRFile === '' ? chosenFilename : selectedEHRFile.name}
-                                </Typography>
-                            </Grid>
-
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                style={submit}
-                            >
-                                Upload EHR
-                            </Button>
-                        </Grid>
+                        </div>
                     </form>
                 </div>
             </Container>
-
+            <SpinnerDialog open={loaded}/>
         </React.Fragment>
-    );
+    )
+        ;
 }

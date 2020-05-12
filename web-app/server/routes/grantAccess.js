@@ -31,9 +31,14 @@ router.post('/', async (req, res) => {
 
             // Get the contract from the network.
             const contract = network.getContract('EHR');
-
+            let response = '';
             // Submit the specified transaction.
-            let response = await contract.submitTransaction('grantAccess', JSON.stringify(req.body));
+            console.log(req.body);
+            if (req.body.requestType !== "direct") {
+                response = await contract.submitTransaction('grantAccess', JSON.stringify(req.body));
+            } else {
+                response = await contract.submitTransaction('grantDirectAccess', JSON.stringify(req.body));
+            }
             response = JSON.stringify(response.toString());
             console.log(response);
 

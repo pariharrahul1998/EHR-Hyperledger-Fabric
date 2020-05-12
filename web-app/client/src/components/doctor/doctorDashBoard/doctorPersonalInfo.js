@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
-import Title from './Title';
+import Title from '../../genericFiles/Title';
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
@@ -11,7 +11,8 @@ import Avatar from "@material-ui/core/Avatar";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
+import {ADDRESS} from "../../genericFiles/constants";
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 
 const theme = createMuiTheme();
@@ -35,6 +36,7 @@ const submit = {
 
 export default function DoctorPersonalInfo(props) {
     const [updatedData, setUpdatedData] = React.useState(JSON.parse(props.data));
+    const [loaded, setLoaded] = React.useState(false);
     var doctor = updatedData;
     doctor.password = '';
     doctor.id = doctor.medicalRegistrationNo;
@@ -54,7 +56,7 @@ export default function DoctorPersonalInfo(props) {
 
     const submitForm = async (event) => {
         event.preventDefault();
-
+        setLoaded(true);
         let response = "";
         try {
             console.log(doctor);
@@ -71,10 +73,9 @@ export default function DoctorPersonalInfo(props) {
                 console.log(response);
             }
         } catch (e) {
-            //show error message
             console.log("failed to connect to the server");
         }
-
+        setLoaded(false);
     };
 
     return (
@@ -237,6 +238,7 @@ export default function DoctorPersonalInfo(props) {
                     </div>
                 </Container>
             </div>
+            <SpinnerDialog open={loaded}/>
         </React.Fragment>
     );
 }

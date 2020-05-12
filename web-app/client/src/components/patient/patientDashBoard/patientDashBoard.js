@@ -20,20 +20,26 @@ import PatientPersonalInfo from './patientPersonalInfo';
 import ExitToApp from "@material-ui/icons/ExitToApp";
 import {Redirect} from "react-router-dom";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
-import copyright from '../../copyright';
+import {ADDRESS} from "../../genericFiles/constants";
+import copyright from '../../genericFiles/copyright';
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ListItemText from "@material-ui/core/ListItemText";
 import PeopleIcon from "@material-ui/icons/People";
-import BarChartIcon from "@material-ui/icons/BarChart";
-import LayersIcon from "@material-ui/icons/Layers";
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import ListSubheader from "@material-ui/core/ListSubheader";
 import AssignmentIcon from "@material-ui/icons/Assignment";
+import ContactPhoneIcon from '@material-ui/icons/ContactPhone';
 import {AddIcCallSharp} from "@material-ui/icons";
 import BookHospitalAppointment from "./bookHospitalAppointment";
+import ManageFileAccess from "./manageFileAccess";
 import ViewEHRs from "./viewEHRs";
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
+import ViewLabRecords from "./viewLabRecords";
+import ViewMedicineRecipts from "./viewMedicineReceipts";
+import ViewBills from "./viewBills";
+import InsuranceClaim from "./insuranceClaim";
 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
@@ -141,14 +147,21 @@ export default function PatientDashBoard() {
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
     const [patientData, setPatientData] = React.useState(patientFormat);
+    const [loaded, setLoaded] = React.useState(false);
     const [open, setOpen] = React.useState(true);
     const [logOut, setLogOut] = React.useState(false);
     const [patientInfoDisplay, setPatientInfoDisplay] = React.useState(false);
     const [bookAppointmentDisplay, setBookAppointmentDisplay] = React.useState(false);
+    const [requesterDisplay, setRequesterDisplay] = React.useState(false);
+    const [insuranceClaimDisplay, setInsuranceClaimDisplay] = React.useState(false);
     const [viewEHRsDisplay, setViewEHRsDisplay] = React.useState(false);
+    const [viewLabRecordsDisplay, setViewLabRecordsDisplay] = React.useState(false);
+    const [viewMedicineReceiptsDisplay, setViewMedicineReceiptsDisplay] = React.useState(false);
+    const [viewBillsDisplay, setViewBillsDisplay] = React.useState(false);
 
     useEffect(() => {
         const fetchPatientData = async () => {
+            setLoaded(true);
             try {
                 let patientCredentials = JSON.parse(localStorage.getItem('patientToken'));
                 if (!patientCredentials) {
@@ -168,6 +181,7 @@ export default function PatientDashBoard() {
             } catch (e) {
                 console.log(e);
             }
+            setLoaded(false);
         };
         fetchPatientData();
     }, []);
@@ -175,6 +189,7 @@ export default function PatientDashBoard() {
 
     const handleLogOut = async () => {
         console.log("herer");
+        setLoaded(true);
         try {
             let patientCredentials = JSON.parse(localStorage.getItem('patientToken'));
             patientCredentials.id = patientCredentials.userName;
@@ -189,13 +204,14 @@ export default function PatientDashBoard() {
             }
         } catch (e) {
             //handle the error by giving out a error messeage saying the logOUt failed
+            console.log(e);
         }
+        setLoaded(false);
     };
 
     const handleDrawerOpen = () => {
         setOpen(true);
     };
-
     const handleDrawerClose = () => {
         setOpen(false);
     };
@@ -224,6 +240,30 @@ export default function PatientDashBoard() {
             }
         }
     };
+    const visibilityHandlerRequesters = () => {
+        var x = document.getElementById("fileAccess");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setRequesterDisplay(true);
+            } else {
+                x.style.display = "none";
+                setRequesterDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerInsuranceClaim = () => {
+        var x = document.getElementById("insuranceClaim");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setInsuranceClaimDisplay(true);
+            } else {
+                x.style.display = "none";
+                setInsuranceClaimDisplay(false);
+            }
+        }
+    };
     const visibilityHandlerViewEHRs = () => {
         var x = document.getElementById("viewEHRs");
         if (x) {
@@ -236,7 +276,45 @@ export default function PatientDashBoard() {
             }
         }
     };
-
+    const visibilityHandlerViewLabRecords = () => {
+        console.log("insidre");
+        var x = document.getElementById("viewLabRecords");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewLabRecordsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewLabRecordsDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerViewMedicineReceipts = () => {
+        console.log("hssdf");
+        var x = document.getElementById("viewMedicineReceipts");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewMedicineReceiptsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewMedicineReceiptsDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerViewBills = () => {
+        console.log("insdfsdfsidre");
+        var x = document.getElementById("viewBills");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewBillsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewBillsDisplay(false);
+            }
+        }
+    };
 
     console.log(patientInfoDisplay);
     if (patientInfoDisplay) {
@@ -246,19 +324,49 @@ export default function PatientDashBoard() {
                 <PatientPersonalInfo data={JSON.stringify(patientData)}/>
             </Paper>
         );
-    }
-
-    if (bookAppointmentDisplay) {
+    } else if (bookAppointmentDisplay) {
         var bookAppointment = (
             <Paper className={fixedHeightPaper} style={{height: '360'}}>
                 <BookHospitalAppointment data={JSON.stringify(patientData)}/>
             </Paper>
         );
-    }
-    if (viewEHRsDisplay) {
+    } else if (requesterDisplay) {
+        var fileAccess = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ManageFileAccess data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    } else if (insuranceClaimDisplay) {
+        var insuranceClaim = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <InsuranceClaim data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    } else if (viewEHRsDisplay) {
         var viewEHRs = (
             <Paper className={fixedHeightPaper} style={{height: '360'}}>
                 <ViewEHRs data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    } else if (viewLabRecordsDisplay) {
+        console.log("Lab Records");
+        var viewLabRecords = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewLabRecords data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    } else if (viewMedicineReceiptsDisplay) {
+        console.log("Medicine Reciepts");
+        var viewMedicineReceipts = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewMedicineRecipts data={JSON.stringify(patientData)}/>
+            </Paper>
+        );
+    } else if (viewBillsDisplay) {
+        console.log("Bills");
+        var viewBills = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewBills data={JSON.stringify(patientData)}/>
             </Paper>
         );
     }
@@ -277,7 +385,7 @@ export default function PatientDashBoard() {
                 </ListItemIcon>
                 <ListItemText primary="Book Appointment"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerRequesters}>
                 <ListItemIcon>
                     <PeopleIcon/>
                 </ListItemIcon>
@@ -285,15 +393,15 @@ export default function PatientDashBoard() {
             </ListItem>
             <ListItem button>
                 <ListItemIcon>
-                    <BarChartIcon/>
+                    <ContactPhoneIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Reports"/>
+                <ListItemText primary="Emergency Contacts"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerInsuranceClaim}>
                 <ListItemIcon>
-                    <LayersIcon/>
+                    <MonetizationOnIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Integrations"/>
+                <ListItemText primary="Insurance Claim"/>
             </ListItem>
         </div>
     );
@@ -306,19 +414,19 @@ export default function PatientDashBoard() {
                 </ListItemIcon>
                 <ListItemText primary="View EHRs"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerViewLabRecords}>
                 <ListItemIcon>
                     <AssignmentIcon/>
                 </ListItemIcon>
                 <ListItemText primary="View Lab Reports"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerViewMedicineReceipts}>
                 <ListItemIcon>
                     <AssignmentIcon/>
                 </ListItemIcon>
                 <ListItemText primary="View Medicine Receipt"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerViewBills}>
                 <ListItemIcon>
                     <AssignmentIcon/>
                 </ListItemIcon>
@@ -388,8 +496,23 @@ export default function PatientDashBoard() {
                         <Grid item xs={12} style={{display: 'none'}} id="bookAppointment">
                             {bookAppointment}
                         </Grid>
-                        <Grid item xs={12} id="viewEHRs">
+                        <Grid item xs={12} style={{display: 'none'}} id="fileAccess">
+                            {fileAccess}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="insuranceClaim">
+                            {insuranceClaim}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewEHRs">
                             {viewEHRs}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewLabRecords">
+                            {viewLabRecords}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewMedicineReceipts">
+                            {viewMedicineReceipts}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewBills">
+                            {viewBills}
                         </Grid>
 
                     </Grid>
@@ -398,6 +521,7 @@ export default function PatientDashBoard() {
                     </Box>
                 </Container>
             </main>
+            <SpinnerDialog open={loaded}/>
         </div>
     );
 }

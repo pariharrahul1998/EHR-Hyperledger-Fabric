@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import axios from 'axios';
 import {Redirect} from 'react-router-dom';
-import {ADDRESS} from "../constants";
+import {ADDRESS} from "../genericFiles/constants";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import Avatar from "@material-ui/core/Avatar";
@@ -15,10 +15,11 @@ import Button from "@material-ui/core/Button";
 import Link from "@material-ui/core/Link";
 import Box from "@material-ui/core/Box";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
-import copyright from '../copyright';
+import copyright from '../genericFiles/copyright';
 import MenuItem from "@material-ui/core/MenuItem";
-import {validateForm} from "../validateForm";
-import PopUp from "../PopUp";
+import {validateForm} from "../genericFiles/validateForm";
+import PopUp from "../genericFiles/PopUp";
+import SpinnerDialog from "../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 
@@ -61,7 +62,8 @@ class registerPatient extends Component {
             errors: {},
             alertShow: false,
             alertData: '',
-            alertHeading: ''
+            alertHeading: '',
+            loaded: false
         }
 
     }
@@ -111,7 +113,9 @@ class registerPatient extends Component {
         if (!isInvalid) {
             let response = "";
             try {
+                this.setState({loaded: true});
                 response = await axios.post(ADDRESS + `registerPatient`, this.state);
+                this.setState({loaded: false});
                 response = response.data;
                 console.log(response);
                 if (response === "Correct") {
@@ -128,6 +132,7 @@ class registerPatient extends Component {
                 }
             } catch (e) {
                 this.setState({
+                    loaded: true,
                     alertShow: true,
                     alertHeading: "Server Error",
                     alertData: "Can not connect to the server",
@@ -330,7 +335,12 @@ class registerPatient extends Component {
                             >
                                 Sign Up
                             </Button>
-                            <Grid container justify="flex-end">
+                            <Grid container>
+                                <Grid item xs>
+                                    <Link href="/" variant="body2">
+                                        Home Page
+                                    </Link>
+                                </Grid>
                                 <Grid item>
                                     <Link href="/patientLogin" variant="body2">
                                         Already have an account? Sign in
@@ -342,6 +352,7 @@ class registerPatient extends Component {
                     <Box mt={5}>
                         <copyright.Copyright/>
                     </Box>
+                    <SpinnerDialog open={this.state.loaded}/>
                 </Container>
 
             );

@@ -56,9 +56,6 @@ router.post('/', EHRCollection.single('file'), async (req, res) => {
             console.log(publicId);
             req.body.ehrId = publicId;
             req.body.record = req.file.md5;
-            //send the values for the pharmacy and the laboratory from the doctor side only
-            req.body.pharmacyId = ' ';
-            req.body.laboratoryId = ' ';
 
             let sessionKeyExists = await handler.verifySessionKey(req.body.doctorId, req.body.sessionKey);
             if (!sessionKeyExists) {
@@ -95,8 +92,7 @@ router.post('/', EHRCollection.single('file'), async (req, res) => {
         } else {
             res.send("Failed to upload the health record");
         }
-    } catch
-        (error) {
+    } catch (error) {
         console.error(`Failed to generate EHR by doctor ${req.body.userName}: ${error}`);
         res.send("Failed to generate an EHR");
     } finally {

@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
         let requestType = req.body.dataType;
         console.log(req.body.dataType);
         let response = ["Incorrect"];
-        if (requestType === 'Hospital') {
+        if (requestType === 'Hospital' || requestType === "Insurance") {
             let queryString = {
                 "selector": {
                     "type": requestType
@@ -43,7 +43,26 @@ router.post('/', async (req, res) => {
             response = await contract.evaluateTransaction('queryWithQueryString', JSON.stringify(queryString));
             response = JSON.parse(response.toString());
             console.log(response);
+        } else if (requestType === 'Pharmacy' || requestType === 'Laboratory') {
+            let queryString = {
+                "selector": {
+                    "type": requestType,
+                    "hospitalId": req.body.hospitalId
+                }
+            };
+            response = await contract.evaluateTransaction('queryWithQueryString', JSON.stringify(queryString));
+            response = JSON.parse(response.toString());
         }
+        for (let i = 0; i < response.length; i++) {
+            delete response[i].Record.password;
+            delete response[i].Record.appointments;
+            delete response[i].Record.patients;
+            delete response[i].Record.patientsAttended;
+            delete response[i].Record.patientsVisited;
+            delete response[i].Record.bills;
+            delete response[i].Record.sessionKey;
+        }
+        console.log(response);
         res.send(response);
         gateway.disconnect();
     } catch (error) {

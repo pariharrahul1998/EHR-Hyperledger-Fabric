@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import Title from './Title';
+import Title from '../../genericFiles/Title';
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
@@ -10,10 +10,10 @@ import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import Avatar from "@material-ui/core/Avatar";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
+import {ADDRESS} from "../../genericFiles/constants";
 import PostAddIcon from '@material-ui/icons/PostAdd';
 import MenuItem from "@material-ui/core/MenuItem";
-
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 const avatar = {
@@ -40,6 +40,7 @@ const useStyles = makeStyles(theme => ({
 export default function AssignDoctor(props) {
     const classes = useStyles();
     const [updatedData, setUpdatedData] = React.useState(JSON.parse(props.data));
+    const [loaded, setLoaded] = React.useState(false);
     const [appointmentId, setAppointmentId] = React.useState("");
     const [doctorId, setDoctorId] = React.useState("");
     var doctorAssignment = {
@@ -71,6 +72,7 @@ export default function AssignDoctor(props) {
     const handleChange = async (event) => {
         event.preventDefault();
         if (event.target.name === 'appointmentId') {
+            setLoaded(true);
             setAppointmentId(event.target.value);
             let response = "";
             try {
@@ -93,6 +95,7 @@ export default function AssignDoctor(props) {
                 //show error message
                 console.log("failed to connect to the server");
             }
+            setLoaded(false);
         } else if (event.target.name === 'doctorId') {
             setDoctorId(event.target.value);
         }
@@ -101,7 +104,7 @@ export default function AssignDoctor(props) {
 
     const submitDoctorAssignment = async (event) => {
         event.preventDefault();
-
+        setLoaded(true);
         let response = "";
         try {
             console.log(doctorAssignment);
@@ -126,7 +129,7 @@ export default function AssignDoctor(props) {
             //show error message
             console.log(e);
         }
-
+        setLoaded(false);
     };
 
     function createAppointmentMenuItems() {
@@ -225,7 +228,7 @@ export default function AssignDoctor(props) {
                     </form>
                 </div>
             </Container>
-
+            <SpinnerDialog open={loaded}/>
         </React.Fragment>
     );
 }

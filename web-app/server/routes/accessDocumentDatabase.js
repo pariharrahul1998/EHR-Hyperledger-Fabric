@@ -96,9 +96,70 @@ async function getFileDetailsAndDocumentId(userName, publicId, documentType) {
     }
 }
 
+async function registerNewUser(id, name, type) {
+    try {
+        const mongo = require('mongodb').MongoClient;
+        const url = 'mongodb://127.0.0.1:27017';
+        let client;
+        let userSchema = {
+            userId: id,
+            type: type,
+            name: name,
+        };
+        console.log(userSchema);
+        client = await mongo.connect(url);
+        let result = await client.db('EHR').collection('registeredUserList').insertOne(userSchema);
+        await client.close();
+        return result;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+async function fetchUsersByType(type) {
+    try {
+        const mongo = require('mongodb').MongoClient;
+        const url = 'mongodb://127.0.0.1:27017';
+        let client;
+        let userSchema = {
+            type: type,
+        };
+        console.log(userSchema);
+        client = await mongo.connect(url);
+        let result = await client.db('EHR').collection('registeredUserList').find(userSchema).toArray();
+        console.log(result);
+        await client.close();
+        return result;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+async function fetchUserByUserName(userName) {
+    try {
+        const mongo = require('mongodb').MongoClient;
+        const url = 'mongodb://127.0.0.1:27017';
+        let client;
+        let userSchema = {
+            userId: userName,
+        };
+        console.log(userSchema);
+        client = await mongo.connect(url);
+        let result = await client.db('EHR').collection('registeredUserList').findOne(userSchema);
+        console.log(result);
+        await client.close();
+        return result;
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 module.exports = {
     updateDocumentIntoDatabase,
     removeDocumentFromDatabase,
     verifyFileExistenceAndHash,
-    getFileDetailsAndDocumentId
+    getFileDetailsAndDocumentId,
+    fetchUsersByType,
+    fetchUserByUserName,
+    registerNewUser
 };

@@ -20,20 +20,20 @@ import DoctorPersonalInfo from './doctorPersonalInfo';
 import ExitToApp from "@material-ui/icons/ExitToApp";
 import {Redirect} from "react-router-dom";
 import axios from "axios";
-import {ADDRESS} from "../../constants";
-import copyright from '../../copyright';
+import {ADDRESS} from "../../genericFiles/constants";
+import copyright from '../../genericFiles/copyright';
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import ListItemText from "@material-ui/core/ListItemText";
-import PeopleIcon from "@material-ui/icons/People";
-import BarChartIcon from "@material-ui/icons/BarChart";
-import LayersIcon from "@material-ui/icons/Layers";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import AssignmentIcon from "@material-ui/icons/Assignment";
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import GenerateEHR from "./generateEHR";
-
+import RequestDocumentAccess from "../../genericFiles/requestDocumentsAccess";
+import ViewPatientDocuments from "../../genericFiles/viewPatientDocuments";
+import SpinnerDialog from "../../genericFiles/SpinnerDialog";
 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
@@ -139,13 +139,17 @@ export default function DoctorDashBoard() {
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
     const [doctorData, setDoctorData] = React.useState(doctorFormat);
+    const [loaded, setLoaded] = React.useState(false);
     const [open, setOpen] = React.useState(true);
     const [logOut, setLogOut] = React.useState(false);
     const [doctorInfoDisplay, setDoctorInfoDisplay] = React.useState(false);
     const [generateEHRDisplay, setGenerateEHRDisplay] = React.useState(false);
+    const [requestAccessDisplay, setRequestAccessDisplay] = React.useState(false);
+    const [viewDocumentsDisplay, setViewDocumentsDisplay] = React.useState(false);
 
     useEffect(() => {
         const fetchDoctorData = async () => {
+            setLoaded(true);
             try {
                 let doctorCredentials = JSON.parse(localStorage.getItem('doctorToken'));
                 console.log(doctorCredentials);
@@ -165,8 +169,10 @@ export default function DoctorDashBoard() {
                     }
                 }
             } catch (e) {
+                setLoaded(false);
                 console.log(e);
             }
+            setLoaded(false);
         };
         fetchDoctorData();
     }, []);
@@ -176,8 +182,10 @@ export default function DoctorDashBoard() {
         console.log("herer");
         try {
             let doctorCredentials = JSON.parse(localStorage.getItem('doctorToken'));
-            doctorCredentials.id = doctorCredentials.registrationId;
+            doctorCredentials.id = doctorCredentials.medicalRegistrationNo;
+            setLoaded(true);
             let response = await axios.post(ADDRESS + `logOut`, doctorCredentials);
+            setLoaded(false);
             response = response.data;
             console.log(response);
             if (response === 'Correct') {
@@ -187,6 +195,7 @@ export default function DoctorDashBoard() {
                 //handle the failure by a error message stating why it failed
             }
         } catch (e) {
+            setLoaded(false);
             //handle the error by giving out a error messeage saying the logOUt failed
         }
     };
@@ -223,8 +232,32 @@ export default function DoctorDashBoard() {
             }
         }
     };
+    const visibilityHandlerRequestAccess = () => {
+        var x = document.getElementById("requestAccess");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setRequestAccessDisplay(true);
+            } else {
+                x.style.display = "none";
+                setRequestAccessDisplay(false);
+            }
+        }
+    };
+    const visibilityHandlerViewDocuments = () => {
+        var x = document.getElementById("viewDocuments");
+        if (x) {
+            if (x.style.display === "none") {
+                x.style.display = "block";
+                setViewDocumentsDisplay(true);
+            } else {
+                x.style.display = "none";
+                setViewDocumentsDisplay(false);
+            }
+        }
+    };
 
-    console.log(doctorInfoDisplay);
+    console.log("Display");
     if (doctorInfoDisplay) {
         console.log("here");
         var doctorInfo = (
@@ -232,17 +265,28 @@ export default function DoctorDashBoard() {
                 <DoctorPersonalInfo data={JSON.stringify(doctorData)}/>
             </Paper>
         );
-    }
-    console.log(generateEHRDisplay);
-    if (generateEHRDisplay) {
+    } else if (generateEHRDisplay) {
         console.log("there");
         var generateEHR = (
             <Paper className={fixedHeightPaper} style={{height: '360'}}>
                 <GenerateEHR data={JSON.stringify(doctorData)}/>
             </Paper>
         );
+    } else if (requestAccessDisplay) {
+        console.log("nowhere");
+        var requestAccess = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <RequestDocumentAccess data={JSON.stringify(doctorData)}/>
+            </Paper>
+        );
+    } else if (viewDocumentsDisplay) {
+        console.log("here there");
+        var viewDocuments = (
+            <Paper className={fixedHeightPaper} style={{height: '360'}}>
+                <ViewPatientDocuments data={JSON.stringify(doctorData)}/>
+            </Paper>
+        );
     }
-
 
     const mainListItems = (
         <div>
@@ -258,46 +302,22 @@ export default function DoctorDashBoard() {
                 </ListItemIcon>
                 <ListItemText primary="Generate EHR"/>
             </ListItem>
-            <ListItem button>
+            <ListItem button onClick={visibilityHandlerRequestAccess}>
                 <ListItemIcon>
-                    <PeopleIcon/>
+                    <FileCopyIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Customers"/>
-            </ListItem>
-            <ListItem button>
-                <ListItemIcon>
-                    <BarChartIcon/>
-                </ListItemIcon>
-                <ListItemText primary="Reports"/>
-            </ListItem>
-            <ListItem button>
-                <ListItemIcon>
-                    <LayersIcon/>
-                </ListItemIcon>
-                <ListItemText primary="Integrations"/>
+                <ListItemText primary="Request Documents"/>
             </ListItem>
         </div>
     );
     const secondaryListItems = (
         <div>
-            <ListSubheader inset>Saved reports</ListSubheader>
-            <ListItem button>
+            <ListSubheader inset>Shared Reports</ListSubheader>
+            <ListItem button onClick={visibilityHandlerViewDocuments}>
                 <ListItemIcon>
                     <AssignmentIcon/>
                 </ListItemIcon>
-                <ListItemText primary="Current month"/>
-            </ListItem>
-            <ListItem button>
-                <ListItemIcon>
-                    <AssignmentIcon/>
-                </ListItemIcon>
-                <ListItemText primary="Last quarter"/>
-            </ListItem>
-            <ListItem button>
-                <ListItemIcon>
-                    <AssignmentIcon/>
-                </ListItemIcon>
-                <ListItemText primary="Year-end sale"/>
+                <ListItemText primary="View Reports"/>
             </ListItem>
         </div>
     );
@@ -363,13 +383,19 @@ export default function DoctorDashBoard() {
                         <Grid item xs={12} style={{display: 'none'}} id="generateEHR">
                             {generateEHR}
                         </Grid>
-
+                        <Grid item xs={12} style={{display: 'none'}} id="requestAccess">
+                            {requestAccess}
+                        </Grid>
+                        <Grid item xs={12} style={{display: 'none'}} id="viewDocuments">
+                            {viewDocuments}
+                        </Grid>
                     </Grid>
                     <Box pt={4}>
                         <copyright.Copyright/>
                     </Box>
                 </Container>
             </main>
+            <SpinnerDialog open={loaded}/>
         </div>
     );
 }
