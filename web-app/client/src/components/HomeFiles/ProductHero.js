@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Typography from './Typography';
 import ProductHeroLayout from './ProductHeroLayout';
+import blockchainBackground from '../stockImages/blockchainBackground.jpg'
 
-const backgroundImage =
-    'https://i1.wp.com/www.the-blockchain.com/wp-content/uploads/2016/05/Health_IoT_Hero_1.jpg?fit=777%2C375';
+const backgroundImage = blockchainBackground;
 
 const styles = (theme) => ({
     background: {

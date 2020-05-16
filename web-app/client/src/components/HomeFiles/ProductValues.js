@@ -44,7 +44,7 @@ function ProductValues(props) {
         <section className={classes.root}>
             <Container className={classes.container}>
                 <img
-                    src="https://material-ui.com/static/themes/onepirate/productCurvyLines.png"
+                    src={require("../stockImages/curvyLines.png")}
                     className={classes.curvyLines}
                     alt="curvy lines"
                 />
@@ -54,6 +54,7 @@ function ProductValues(props) {
                             <img
                                 className={classes.image}
                                 src="https://www.flaticon.com/premium-icon/icons/svg/1147/1147736.svg"
+                                // src={require("../stockImages/appointment.svg")}
                                 alt="Appointment"
                             />
                             <Typography variant="h6" className={classes.title}>
@@ -69,7 +70,8 @@ function ProductValues(props) {
                             <img
                                 style={{backgroundColor: '#FFF0F5'}}
                                 className={classes.image}
-                                src="https://image.flaticon.com/icons/png/512/35/35920.png"
+                                // src="https://image.flaticon.com/icons/png/512/35/35920.png"
+                                src={require("../stockImages/documents.png")}
                                 alt="Document"
                             />
                             <Typography variant="h6" className={classes.title}>
@@ -85,7 +87,8 @@ function ProductValues(props) {
                         <div className={classes.item} align={"center"}>
                             <img
                                 className={classes.image}
-                                src="https://image.flaticon.com/icons/png/512/1792/1792189.png"
+                                // src="https://image.flaticon.com/icons/png/512/1792/1792189.png"
+                                src={require("../stockImages/accessControl.png")}
                                 alt="Access Control"
                             />
                             <Typography variant="h6" className={classes.title}>

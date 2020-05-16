@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
-import ProductCategories from "./HomeFiles/ProductCategories";
-import AppAppBar from "./HomeFiles/AppAppBar";
-import ProductHero from "./HomeFiles/ProductHero";
-import ProductValues from "./HomeFiles/ProductValues";
-import AppFooter from "./HomeFiles/AppFooter";
+import ProductCategories from "./ProductCategories";
+import AppAppBar from "./AppAppBar";
+import ProductHero from "./ProductHero";
+import ProductValues from "./ProductValues";
+import AppFooter from "./AppFooter";
 
 class Home extends Component {
     render() {

@@ -22,7 +22,7 @@ import SpinnerDialog from "../genericFiles/SpinnerDialog";
 
 const theme = createMuiTheme();
 const image = {
-    backgroundImage: 'url(https://www.imedicalapps.com/wp-content/uploads/2017/12/iStock-669282098.jpg)',
+    backgroundImage: `url(${require("../stockImages/loginBackground.jpg")})`,//'url(https://www.imedicalapps.com/wp-content/uploads/2017/12/iStock-669282098.jpg)',
     backgroundRepeat: 'no-repeat',
     backgroundColor: theme.palette.type === 'light' ? theme.palette.grey[50] : theme.palette.grey[900],
     backgroundSize: 'cover',

@@ -89,44 +89,44 @@ function ProductCategories(props) {
     const [redirectLink, setRedirectLink] = React.useState('');
     const images = [
         {
-            url:
-                'http://images.indulgexpress.com/uploads/user/imagelibrary/2017/11/20/original/cancer_patient.jpg',
+            url: require("../stockImages/patient.jpg"),
+            // 'http://images.indulgexpress.com/uploads/user/imagelibrary/2017/11/20/original/cancer_patient.jpg',
             title: 'Patient',
             width: '60%',
         },
         {
-            url:
-                'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.XbjUsLa610Gq-GZg7IhMHAHaE8%26pid%3DApi&f=1',
+            url: require("../stockImages/doctor.jpeg"),
+            // 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.XbjUsLa610Gq-GZg7IhMHAHaE8%26pid%3DApi&f=1',
             title: 'Doctor',
             width: '40%',
         },
         {
-            url:
-                'https://media.istockphoto.com/photos/hospital-building-exterior-and-hospital-sign-picture-id610220632?k=6&m=610220632&s=612x612&w=0&h=M9gF0wh2c491diYWwI_we6qeC01U0t2opLU59Dh-RP8=',
+            url: require("../stockImages/hospital.jpg"),
+            // 'https://media.istockphoto.com/photos/hospital-building-exterior-and-hospital-sign-picture-id610220632?k=6&m=610220632&s=612x612&w=0&h=M9gF0wh2c491diYWwI_we6qeC01U0t2opLU59Dh-RP8=',
             title: 'Hospital',
             width: '40%',
         },
         {
-            url:
-                'https://www.statnews.com/wp-content/uploads/2016/11/AP_04031606125-1024x576.jpg',
+            url: require("../stockImages/pharmacy.jpg"),
+            // 'https://www.statnews.com/wp-content/uploads/2016/11/AP_04031606125-1024x576.jpg',
             title: 'Pharmacy',
             width: '30%',
         },
         {
-            url:
-                'https://www.usa.philips.com/c-dam/b2bhc/master/Products/Category/magnetic-resonance/imaging-systems-thumb.jpg',
+            url: require("../stockImages/laboratory.webp"),
+            // 'https://www.usa.philips.com/c-dam/b2bhc/master/Products/Category/magnetic-resonance/imaging-systems-thumb.jpg',
             title: 'Laboratory',
             width: '30%',
         },
         {
-            url:
-                'http://insurancelovers.com/wp-content/uploads/2014/08/Images-Health-Insurance-HD-Wallpaper.jpg',
+            url: require("../stockImages/insurance.jpg"),
+            // 'http://insurancelovers.com/wp-content/uploads/2014/08/Images-Health-Insurance-HD-Wallpaper.jpg',
             title: 'Insurance',
             width: '60%',
         },
         {
-            url:
-                'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.CSReQVt2BfpydidGp28CygHaE8%26pid%3DApi&f=1',
+            url: require("../stockImages/insurance.jpg"),
+            // 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.CSReQVt2BfpydidGp28CygHaE8%26pid%3DApi&f=1',
             title: 'Researcher',
             width: '40%',
         },

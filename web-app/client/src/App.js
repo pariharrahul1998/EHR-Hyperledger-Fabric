@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 import './App.css';
-import Home from './components/Home'
+import Home from './components/HomeFiles/Home'
 import patientLogin from './components/patient/patientLogin'
 import registerPatient from "./components/patient/registerPatient";
-import MediBlock from "./components/genericFiles/mediBlock";
+import MediBlocks from "./components/mediBlock/mediBlocks";
 import registerDoctor from "./components/doctor/registerDoctor";
 import doctorLogin from "./components/doctor/doctorLogin";
 import hospitalLogin from "./components/hospital/hospitalLogin";
@@ -31,7 +31,7 @@ class App extends Component {
             <div>
                 <Router>
                     <Route path="/" exact component={Home}/>
-                    <Route path="/mediBlock" exact component={MediBlock}/>
+                    <Route path="/mediBlocks" exact component={MediBlocks}/>
                     <Route path="/patientLogin" exact component={patientLogin}/>
                     <Route path="/registerPatient" exact component={registerPatient}/>
                     <Route path="/registerDoctor" exact component={registerDoctor}/>

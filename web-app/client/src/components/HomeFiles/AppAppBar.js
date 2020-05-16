@@ -43,7 +43,7 @@ function AppAppBar(props) {
 
     return (
         <div>
-            <AppBar position="fixed" style={{background: '#000000'}}>
+            <AppBar position="fixed" style={{background: 'rgba(6,6,6,0.89)'}}>
                 <Toolbar className={classes.toolbar}>
                     <div className={classes.left}/>
                     <Link
@@ -51,9 +51,9 @@ function AppAppBar(props) {
                         underline="none"
                         color="inherit"
                         className={classes.title}
-                        href="/mediBlock"
+                        href="/"
                     >
-                        {'MEDIBLOCK'}
+                        {'MEDIBLOCKS'}
                     </Link>
                     <div className={classes.right}>
                         <Link
@@ -61,7 +61,7 @@ function AppAppBar(props) {
                             variant="h6"
                             underline="none"
                             className={classes.rightLink}
-                            href="/premium-themes/onepirate/sign-in/"
+                            href="/adminLogin"
                         >
                             {'SIGN IN'}
                         </Link>
@@ -69,7 +69,7 @@ function AppAppBar(props) {
                             variant="h6"
                             underline="none"
                             className={clsx(classes.rightLink, classes.linkSecondary)}
-                            href="/premium-themes/onepirate/sign-up/"
+                            href="/registerAdmin"
                         >
                             {'SIGN UP'}
                         </Link>
