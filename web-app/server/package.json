@@ -24,7 +24,7 @@
     "multer": "^1.4.2",
     "multer-gridfs-storage": "latest",
     "prompt": "^1.0.0",
-    "pug": "^2.0.4",
+    "pug": "^3.0.1",
     "twilio": "^3.39.5",
     "yargs": "^15.1.0"
   },
