@@ -13,7 +13,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "debug": "~2.6.9",
-    "express": "~4.16.1",
+    "express": "~4.17.3",
     "fabric-ca-client": "^1.4.8",
     "fabric-network": "~1.4.0",
     "gridfs-stream": "^1.1.1",
